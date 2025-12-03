@@ -1,0 +1,69 @@
+update_date = 2025-12-03
+
+[[server]]
+hostname = "PowerEdge1"
+ip = "210.45.127.110"
+user = "guochang"
+system_root = "/data2/guochang/distributed-fm-inverse"
+max_event_number = 4
+threads_per_event = 32
+priority = 2
+
+[[server]]
+hostname = "PowerEdge2"
+ip = "210.45.127.108"
+user = "guochang"
+system_root = "/data2/guochang/distributed-fm-inverse"
+max_event_number = 4
+threads_per_event = 32
+priority = 2
+
+[[server]]
+hostname = "PowerEdge3"
+ip = "210.45.127.112"
+user = "guochang"
+system_root = "/data2/guochang/distributed-fm-inverse"
+max_event_number = 4
+threads_per_event = 32
+priority = 2
+
+[[server]]
+hostname = "PowerEdge4"
+ip = "210.45.127.117"
+user = "guochang"
+system_root = "/data/guochang/distributed-fm-inverse"
+max_event_number = 4
+threads_per_event = 32
+priority = 2
+
+[[server]]
+hostname = "PowerEdge5"
+ip = "222.195.83.19"
+user = "guochang"
+system_root = "/data/guochang/distributed-fm-inverse"
+max_event_number = 2
+threads_per_event = 32
+priority = 2
+
+[[server]]
+hostname = "Room312"
+ip = "210.45.127.2"
+user = "guochang"
+system_root = "/data/guochang/distributed-fm-inverse"
+max_event_number = 1
+threads_per_event = 16
+priority = 1
+
+[host]
+hostname = "Room312"
+ip = "210.45.127.2"
+user = "guochang"
+system_root = "/data/guochang/distributed-fm-inverse"
+monitor_directory = [
+    "/data/guochang/bai-he-tan/real-time-system-v1-db/fm",
+    "/data/guochang/chang-ning/real-time-system-v1-db/fm",
+    "/data/guochang/feidong/real-time-system-v1-db/fm",
+    "/data/guochang/lu-xian/real-time-system-v1-db/fm",
+    "/data/guochang/mian-ning/real-time-system-v1-db/fm",
+    "/data/guochang/xiang-ge-li-la/real-time-system-v1-db/fm"
+]
