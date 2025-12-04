@@ -16,20 +16,32 @@ for svr in nodes.servers
     if isempty(status["result"])
         continue
     end
-    svr_address = svr.user * "@" * svr.ip
-    svr_result_buffer = replace(BUFFER_SERVER_RESULT, PRJ_ROOT_PATH=>svr.system_root)
-    cmd_scp = Cmd([
-        "scp";
-        map(r->svr_address*":"*joinpath(svr_result_buffer, r*"_result.tar.gz"), status["result"]);
-        BUFFER_HOST_RESULT
-    ])
-    cmd_rm = Cmd([
-        "ssh",
-        svr_address,
-        """
+    if svr.hostname == nodes.host.hostname
+        cmd_scp = Cmd([
+            "cp",
+            map(r->joinpath(BUFFER_SERVER_RESULT, r*"_result.tar.gz"), status["result"]),
+            BUFFER_HOST_RESULT
+            ])
+        cmd_rm = Cmd([
+            "rm",
+            map(r->joinpath(BUFFER_SERVER_RESULT, r*"_result.tar.gz"), status["result"])
+        ])
+    else
+        svr_address = svr.user * "@" * svr.ip
+        svr_result_buffer = replace(BUFFER_SERVER_RESULT, PRJ_ROOT_PATH=>svr.system_root)
+        cmd_scp = Cmd([
+            "scp";
+            map(r->svr_address*":"*joinpath(svr_result_buffer, r*"_result.tar.gz"), status["result"]);
+            BUFFER_HOST_RESULT
+        ])
+        cmd_rm = Cmd([
+            "ssh",
+            svr_address,
+            """
 rm $(map(r->joinpath(svr_result_buffer, r*"_result.tar.gz"), status["result"]))
-        """
-    ])
+            """
+        ])
+    end
     try
         run(cmd_scp)
         push!(rm_cmds, cmd_rm)

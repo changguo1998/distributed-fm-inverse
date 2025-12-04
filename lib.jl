@@ -179,19 +179,17 @@ function host_load_node()
     return (host=h, servers=svrs)
 end
 
-function get_server_loading(svr::InvServer)
-    # s = read(Cmd([
-    #     "ssh",
-    #     svr.user*"@"*svr.ip,
-    #     "cat $(abspath(svr.system_root, "var", LOAD_STATUS_FILE))",
-    # ]), String)
-    server_status_file = replace(STATUS_SERVER, PRJ_ROOT_PATH=>svr.system_root)
-    cmd = Cmd(`ssh $(svr.user*"@"*svr.ip) "cat $(server_status_file)"`)
+function get_server_loading(svr::InvServer, host::InvHost)
+    if svr.hostname == host.hostname
+        cmd = Cmd(["cat", STATUS_HOST])
+    else
+        server_status_file = replace(STATUS_SERVER, PRJ_ROOT_PATH=>svr.system_root)
+        cmd = Cmd(`ssh $(svr.user*"@"*svr.ip) "cat $(server_status_file)"`)
+    end
     try
         s = read(cmd, String)
         return TOML.parse(s)
     catch
-        @error cmd
         return nothing
     end
     return nothing
