@@ -2,11 +2,14 @@
 
 include(joinpath(@__DIR__, "../lib.jl"))
 
+get_single_process_lock(@__DIR__)
+
 const LOG_SETTING = (log=LOG_SERVER_RESULT, lock=LOCK_SERVER_RESULT_LOG)
 
 event_finished = readdir(BUFFER_SERVER_RUN)
 
 if isempty(event_finished)
+    release_single_process_lock(@__DIR__)
     exit(0)
 end
 
@@ -14,6 +17,7 @@ event_already_packed = map(f->replace(f, "_result.tar.gz"=>""), readdir(BUFFER_S
 wait_for_pack = setdiff(event_finished, event_already_packed)
 
 if isempty(wait_for_pack)
+    release_single_process_lock(@__DIR__)
     exit(0)
 end
 
@@ -36,5 +40,6 @@ try
 catch err
     log_error("failed to pack result for event $evt")
     error(err)
+finally
+    release_single_process_lock(@__DIR__)
 end
-

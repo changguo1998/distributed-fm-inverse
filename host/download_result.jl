@@ -2,6 +2,8 @@
 
 include(joinpath(@__DIR__, "../lib.jl"))
 
+get_single_process_lock(@__DIR__)
+
 LOG_SETTING = (log=LOG_HOST_DOWNLOAD, lock=LOCK_HOST_DOWNLOAD_LOG)
 
 nodes = host_load_node()
@@ -51,11 +53,26 @@ rm $(map(r->joinpath(svr_result_buffer, r*"_result.tar.gz"), status["result"]))
     end
 end
 
+foreach(rm_cmds) do c
+    try
+        run(c)
+    finally
+        return nothing
+    end
+end
+
+host_wait_for_unpack = readdir(BUFFER_HOST_RESULT)
+
+if isempty(host_wait_for_unpack)
+    release_single_process_lock(@__DIR__)
+    exit(0)
+end
+
 get_lock(LOCK_HOST_QUEUE_STATUS_FILE)
 queue_info = TOML.parsefile(STATUS_QUEUE)
 release_lock(LOCK_HOST_QUEUE_STATUS_FILE)
 key_remove = String[]
-for f in readdir(BUFFER_HOST_RESULT)
+for f in host_wait_for_unpack
     tag = replace(f, "_result.tar.gz"=>"")
     if !haskey(queue_info, tag)
         log_err("Cannot find $tag in queue info")
@@ -86,5 +103,8 @@ for k in keys(q)
     end
     t[k] = q[k]
 end
+t["update_time"] = now()
 open(io->TOML.print(io, t), STATUS_QUEUE, "w")
 release_lock(LOCK_HOST_QUEUE_STATUS_FILE)
+
+release_single_process_lock(@__DIR__)

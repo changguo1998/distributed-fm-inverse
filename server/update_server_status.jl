@@ -2,6 +2,8 @@
 
 include(joinpath(@__DIR__, "../lib.jl"))
 
+get_single_process_lock(@__DIR__)
+
 while true
     if isfile(FLAG_SERVER_UPLOADED)
         break
@@ -17,3 +19,5 @@ open(STATUS_SERVER, "w") do io
         "update_time" => now()
     ))
 end
+
+release_single_process_lock(@__DIR__)

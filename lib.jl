@@ -1,7 +1,7 @@
 using Pkg
 Pkg.activate(@__DIR__)
 
-using TOML, Dates
+using TOML, Dates, SHA
 
 const PRJ_ROOT_PATH = abspath(@__DIR__)
 const DRY_RUN = true
@@ -58,6 +58,11 @@ const LOCK_SERVER_RESULT_LOG = abspath(PRJ_ROOT_PATH, "var/server_result_log.loc
 const NODE_LIST_FILE = abspath(PRJ_ROOT_PATH, "config/node-list.toml")
 const SERVER_SETTING_FILE = abspath(PRJ_ROOT_PATH, "config/svr.toml")
 
+function hashstr(s::String)
+    h = sha256(s)
+    return uppercase(join(bytes2hex.(h[1:8])))
+end
+
 function get_lock(f::String)
     n = 1
     while isfile(f)
@@ -72,6 +77,22 @@ function release_lock(f::String)
         rm(f)
     end
     return nothing
+end
+
+function get_single_process_lock(f::String)
+    lockfile = joinpath(PRJ_ROOT_PATH, "var", hashstr(f)*".lock")
+    if isfile(lockfile)
+        exit(0)
+    end
+    touch(lockfile)
+    return nothing
+end
+
+function release_single_process_lock(f::String)
+    lockfile = joinpath(PRJ_ROOT_PATH, "var", hashstr(f)*".lock")
+    if isfile(lockfile)
+        rm(lockfile; force=true)
+    end
 end
 
 function log_msg(prefix::String, msg...)
