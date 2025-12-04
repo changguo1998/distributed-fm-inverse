@@ -23,6 +23,7 @@ const FLAG_HOST_INVERSION_FINISHED = "dfmi_host_inversion_finished.flag"
 # server event dir
 const FLAG_SERVER_UNPACKED = "dfmi_svr_unpacked.flag"
 const FLAG_SERVER_INVERSE_BEGIN = "dfmi_svr_inverse_begin.flag"
+const FLAG_SERVER_INVERSE_FAILED = "dfmi_svr_inversion_failed.flag"
 const FLAG_SERVER_INVERSE_END = "dfmi_svr_inverse_end.flag"
 const FLAG_SERVER_PACK_RESULT_BEGIN = "dfmi_svr_pack_result_begin.flag"
 const FLAG_SERVER_PACK_RESULT_END = "dfmi_svr_pack_result_end.flag"
@@ -54,6 +55,7 @@ const LOCK_SERVER_INVERSE_LOG = abspath(PRJ_ROOT_PATH, "var/server_inverse_log")
 const LOCK_SERVER_RESULT_LOG = abspath(PRJ_ROOT_PATH, "var/server_result_log.lock")
 
 const NODE_LIST_FILE = abspath(PRJ_ROOT_PATH, "config/node-list.toml")
+const SERVER_SETTING_FILE = abspath(PRJ_ROOT_PATH, "config/svr.toml")
 
 function get_lock(f::String)
     n = 1

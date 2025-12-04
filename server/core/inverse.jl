@@ -14,9 +14,7 @@ include(joinpath(@__DIR__, "glibio.jl"))
 # usage:
 #     julia inverse.jl eventname
 
-pathsetting = TOML.parsefile(joinpath(@__DIR__, "../../config/path.toml"))
-eventname = ARGS[1]
-eventpath = abspath(@__DIR__, "../..", pathsetting["fm_server_working_dir"], eventname)
+eventpath = abspath(ARGS[1])
 
 (env, status) = let
     datafilepath = joinpath(eventpath, "auto.jld2")
