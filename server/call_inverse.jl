@@ -10,7 +10,10 @@ if isempty(buffer_run_list)
     exit(0)
 end
 
-wait_for_submit = filter(d->!isfile(joinpath(BUFFER_SERVER_RUN, d, FLAG_SERVER_UNPACKED)), buffer_run_list)
+wait_for_submit = filter(buffer_run_list) do d
+    edir = joinpath(BUFFER_SERVER_RUN, d)
+    return isfile(joinpath(edir, FLAG_SERVER_UNPACKED)) && (!isfile(joinpath(edir, FLAG_SERVER_INVERSE_BEGIN)))
+end
 
 if isempty(wait_for_submit)
     exit(0)
@@ -28,10 +31,10 @@ cmd = Cmd(["julia", "-t", svrsetting["threads_per_event"], joinpath(@__DIR__, "i
 
 try
     run(cmd)
-catch
-    log_error("inversion for event $evt failed")
+    touch(joinpath(BUFFER_SERVER_RUN, evt, FLAG_SERVER_INVERSE_END))
+    log_info("inversion for event $evt succeeded")
+catch err
     touch(joinpath(BUFFER_SERVER_RUN, evt, FLAG_SERVER_INVERSE_FAILED))
-    exit(0)
+    log_error("inversion for event $evt failed")
+    error(err)
 end
-
-touch(joinpath(BUFFER_SERVER_RUN, evt, FLAG_SERVER_INVERSE_END))

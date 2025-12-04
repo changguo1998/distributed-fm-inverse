@@ -10,7 +10,6 @@ end
 
 buffer_list = readdir(BUFFER_SERVER_INPUT)
 inv_list = readdir(BUFFER_SERVER_RUN)
-
 wait_for_submit = setdiff(buffer_list, inv_list)
 
 if isempty(wait_for_submit)
@@ -18,18 +17,17 @@ if isempty(wait_for_submit)
 end
 
 for f in wait_for_submit
-    log_info("unpack data file $f")
+    log_info("unpack $f")
     tag = replace(f, "_input.tar.gz"=>"")
     run_dir = joinpath(BUFFER_SERVER_RUN, tag)
     mkpath(run_dir)
     cmd = Cmd(["tar", "xaf", joinpath(BUFFER_SERVER_INPUT, f), "-C", run_dir])
-    log_info("run command: ", string(cmd))
     try
         run(cmd)
+        touch(joinpath(run_dir, FLAG_SERVER_UNPACKED))
+        log_info("$f unpacked successfully")
     catch
-        log_error("failed to unpack data file $f")
+        log_error("failed to unpack $f")
         continue
     end
-    touch(joinpath(run_dir, FLAG_SERVER_UNPACKED))
-    log_info("data file $f unpacked successfully")
 end

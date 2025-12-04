@@ -11,8 +11,6 @@ randstr(n::Integer) = join(rand(['A':'Z', 'a':'z', '0':'9'], n), "")
 
 edir = abspath(ARGS[1])
 
-log_info("submit to host buffer begin: $edir")
-
 # check input data status
 if !isfile(joinpath(edir, FLAG_HOST_PREPROCESS_END))
     log_warn("event $edir not processed")
@@ -43,20 +41,17 @@ while true
     end
 end
 
-log_info("generate tag: $tag")
+log_info("tag: $tag")
 
 cmd = Cmd(`tar czf $(abspath(BUFFER_HOST_UPLOAD, tag*"_input.tar.gz")) auto.jld2 greenfun`; dir=edir)
 
-log_info("run command ", string(cmd))
-
 try
     run(cmd)
+    log_info("pack up ", tag, " ", string(cmd))
 catch err
-    log_err("run command failed: ", string(err))
+    log_err("pack up failed")
     error(err)
 end
-
-log_info("tar and gzip finished")
 
 get_lock(LOCK_HOST_QUEUE_STATUS_FILE)
 
@@ -71,8 +66,6 @@ t[tag] = edir
 open(io->TOML.print(io, t), STATUS_QUEUE, "w")
 release_lock(LOCK_HOST_QUEUE_STATUS_FILE)
 
-log_info("update queue info")
-
 touch(joinpath(edir, FLAG_HOST_QUEUE_END))
 
-log_info("submit to host buffer end")
+log_info("submit $edir to queue")

@@ -18,9 +18,6 @@ if isempty(wait_for_pack)
 end
 
 evt = first(wait_for_pack)
-
-log_info("pack result for event $evt")
-
 edir = joinpath(BUFFER_SERVER_RUN, evt)
 
 touch(joinpath(edir, FLAG_SERVER_RESULT_BEGIN))
@@ -34,9 +31,10 @@ end
 
 try
     run(cmd)
-catch
+    touch(joinpath(edir, FLAG_SERVER_RESULT_END))
+    log_info("pack result for event $evt")
+catch err
     log_error("failed to pack result for event $evt")
-    exit(0)
+    error(err)
 end
 
-touch(joinpath(edir, FLAG_SERVER_RESULT_END))

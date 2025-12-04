@@ -7,12 +7,9 @@ include(joinpath(@__DIR__, "../lib.jl"))
 
 const LOG_SETTING = (log=LOG_HOST_UPLOAD, lock=LOCK_HOST_UPLOAD_LOG)
 
-log_info("upload to server start")
-
 buffered_event = readdir(BUFFER_HOST_UPLOAD)
 
 if isempty(buffered_event)
-    log_info("no event to upload, exit")
     exit(0)
 end
 
@@ -30,7 +27,6 @@ priority = map(nodes.servers) do svr
 end
 
 if maximum(priority) < 0
-    log_info("server loading is full, exit")
     exit(0)
 end
 
@@ -45,15 +41,20 @@ server_input_buffer = replace(BUFFER_SERVER_INPUT, PRJ_ROOT_PATH=>svr.system_roo
 scpfrom = joinpath(BUFFER_HOST_UPLOAD, datafile)
 scpto = joinpath(server_input_buffer, datafile)
 
-log_info("upload data file $datafile to server $(svr.hostname)")
+cmd1 = Cmd(["ssh", server_address, "rm \"$(server_upload_flag_file)\""])
+cmd2 = Cmd(["scp", scpfrom, "$server_address:$scpto"])
+cmd3 = Cmd(["ssh", server_address, "touch \"$(server_upload_flag_file)\""])
 try
-    run(`ssh $(server_address) "rm $(server_upload_flag_file)"`)
-    run(`scp $scpfrom "$server_address:$scpto"`)
+    run(cmd1)
+    log_info("update upload flag: ", string(cmd1))
+    run(cmd2)
+    log_info("send data: ", string(cmd2))
     rm(scpfrom; force=true)
-    run(`ssh $(server_address) "touch $(server_upload_flag_file)"`)
+    run(cmd3)
+    log_info("update upload flag: ", string(cmd3))
+    log_info("upload data file $datafile to server $(svr.hostname)")
 catch err
     log_err("failed to send data to server $(svr.hostname)")
     error(err)
 end
 
-log_info("upload to server done")

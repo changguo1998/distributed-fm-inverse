@@ -30,16 +30,15 @@ for svr in nodes.servers
 rm $(map(r->joinpath(svr_result_buffer, r*"_result.tar.gz"), status["result"]))
         """
     ])
-    push!(rm_cmds, cmd_rm)
-    log_info("download from $(svr.hostname)")
     try
-        run(cmd)
+        run(cmd_scp)
+        push!(rm_cmds, cmd_rm)
+        log_info("download from $(svr.hostname)")
     catch err
         log_err("error while downloading from $(svr.hostname)")
     end
 end
 
-log_info("unpack result")
 get_lock(LOCK_HOST_QUEUE_STATUS_FILE)
 queue_info = TOML.parsefile(STATUS_QUEUE)
 release_lock(LOCK_HOST_QUEUE_STATUS_FILE)
@@ -57,16 +56,15 @@ for f in readdir(BUFFER_HOST_RESULT)
         "-C",
         queue_info[tag]
     ])
-    log_info("unpack $tag to $(queue_info[tag])")
     try
         run(cmd)
+        push!(key_remove, tag)
+        log_info("unpack $tag to $(queue_info[tag])")
     catch
         log_err("error while unpacking $f")
     end
-    push!(key_remove, tag)
 end
 
-log_info("update queue status")
 get_lock(LOCK_HOST_QUEUE_STATUS_FILE)
 q = TOML.parsefile(STATUS_QUEUE)
 t = Dict()
@@ -78,5 +76,3 @@ for k in keys(q)
 end
 open(io->TOML.print(io, t), STATUS_QUEUE, "w")
 release_lock(LOCK_HOST_QUEUE_STATUS_FILE)
-
-log_info("download result done")
