@@ -38,7 +38,7 @@ scpfrom = joinpath(BUFFER_HOST_UPLOAD, datafile)
 
 if svr.hostname == nodes.host.hostname
     cmd1 = Cmd(["rm", FLAG_SERVER_UPLOADED])
-    cmd2 = Cmd(["cp", scpfrom, "$server_address:$scpto"])
+    cmd2 = Cmd(["cp", scpfrom, scpto])
     cmd3 = Cmd(["touch",  FLAG_SERVER_UPLOADED])
 else
     server_address = svr.user*"@"*svr.ip

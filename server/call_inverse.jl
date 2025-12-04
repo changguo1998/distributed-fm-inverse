@@ -27,7 +27,11 @@ touch(joinpath(BUFFER_SERVER_RUN, evt, FLAG_SERVER_INVERSE_BEGIN))
 
 svrsetting = TOML.parsefile(SERVER_SETTING_FILE)
 
-cmd = Cmd(["julia", "-t", svrsetting["threads_per_event"], joinpath(@__DIR__, "inverse.jl"), joinpath(BUFFER_SERVER_RUN, evt)])
+if DRY_RUN
+    cmd = Cmd(`mkdir -p $(joinpath(BUFFER_SERVER_RUN, evt, "result")); sleep 5`)
+else
+    cmd = Cmd(["julia", "-t", svrsetting["threads_per_event"], joinpath(@__DIR__, "inverse.jl"), joinpath(BUFFER_SERVER_RUN, evt)])
+end
 
 try
     run(cmd)

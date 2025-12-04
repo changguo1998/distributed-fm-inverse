@@ -4,6 +4,7 @@ Pkg.activate(@__DIR__)
 using TOML, Dates
 
 const PRJ_ROOT_PATH = abspath(@__DIR__)
+const DRY_RUN = true
 
 # buffer dir
 const BUFFER_HOST_UPLOAD = abspath(@__DIR__, "var/host_upload")
