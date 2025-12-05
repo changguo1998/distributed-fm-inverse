@@ -1,9 +1,6 @@
 #!/usr/bin/env julia
-
 include(joinpath(@__DIR__, "../lib.jl"))
-
 get_single_process_lock(@__DIR__)
-
 LOG_SETTING = (log=LOG_HOST_DOWNLOAD, lock=LOCK_HOST_DOWNLOAD_LOG)
 
 nodes = host_load_node()

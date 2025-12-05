@@ -1,9 +1,6 @@
 #!/usr/bin/env julia
-
 include(joinpath(@__DIR__, "../lib.jl"))
-
 get_single_process_lock(@__DIR__)
-
 const LOG_SETTING = (log=LOG_SERVER_RESULT, lock=LOCK_SERVER_RESULT_LOG)
 
 event_finished = readdir(BUFFER_SERVER_RUN)

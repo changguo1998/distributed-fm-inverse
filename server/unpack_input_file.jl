@@ -1,9 +1,6 @@
 #!/usr/bin/env julia
-
 include(joinpath(@__DIR__, "../lib.jl"))
-
 get_single_process_lock(@__DIR__)
-
 const LOG_SETTING = (log=LOG_SERVER_UNPACK, lock=LOCK_SERVER_UNPACK_LOG)
 
 if !isfile(FLAG_SERVER_UPLOADED)

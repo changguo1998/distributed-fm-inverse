@@ -1,7 +1,5 @@
 #!/usr/bin/env julia
-
 include(joinpath(@__DIR__, "../lib.jl"))
-
 get_single_process_lock(@__DIR__)
 
 while true

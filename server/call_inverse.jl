@@ -1,7 +1,5 @@
 #!/usr/bin/env julia
-
 include(joinpath(@__DIR__, "../lib.jl"))
-
 const LOG_SETTING = (log=LOG_SERVER_INVERSE, lock=LOCK_SERVER_INVERSE_LOG)
 
 buffer_run_list = readdir(BUFFER_SERVER_RUN)

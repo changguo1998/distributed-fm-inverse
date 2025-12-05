@@ -1,5 +1,4 @@
 #!/usr/bin/env julia
-
 include(joinpath(@__DIR__, "../lib.jl"))
 
 nodes = host_load_node()

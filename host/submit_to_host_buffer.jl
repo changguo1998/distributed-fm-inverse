@@ -4,37 +4,34 @@
 # julia submit_to_host_buffer.jl /absolute/path/to/event
 
 include(joinpath(@__DIR__, "../lib.jl"))
-
+randstr(n::Integer) = join(rand(['A':'Z', 'a':'z', '0':'9'], n), "")
 get_single_process_lock(@__DIR__)
-
 const LOG_SETTING = (log=LOG_HOST_QUEUE, lock=LOCK_HOST_QUEUE_LOG)
 
-randstr(n::Integer) = join(rand(['A':'Z', 'a':'z', '0':'9'], n), "")
+nodes = host_load_node()
+candidate_events = String[]
+for d in nodes.host.monitor_directory
+    if !isdir(d)
+        continue
+    end
+    tmp_list = filter(readdir(d; join=true)) do e
+        return isfile(joinpath(e, FLAG_HOST_PREPROCESS_END)) &&
+           isfile(joinpath(e, "auto.jld2")) &&
+           isdir(joinpath(e, "greenfun")) &&
+           (!isfile(joinpath(e, FLAG_HOST_QUEUE_BEGIN)))
+    end
+    if isempty(tmp_list)
+        continue
+    end
+    append!(candidate_events, tmp_list)
+end
 
-edir = abspath(ARGS[1])
-
-# check input data status
-if !isfile(joinpath(edir, FLAG_HOST_PREPROCESS_END))
-    log_warn("event $edir not processed")
+if isempty(candidate_events)
     release_single_process_lock(@__DIR__)
     exit(0)
 end
-if !isfile(joinpath(edir, "auto.jld2"))
-    log_err("event $edir cannot find auto.jld2")
-    release_single_process_lock(@__DIR__)
-    error("data not ready")
-end
-if !isdir(joinpath(edir, "greenfun"))
-    log_err("event $edir cannot find greenfun")
-    release_single_process_lock(@__DIR__)
-    error("data not ready")
-end
 
-if isfile(joinpath(edir, FLAG_HOST_QUEUE_BEGIN))
-    log_warn("event $edir queue already begins")
-    release_single_process_lock(@__DIR__)
-    exit(0)
-end
+edir = rand(candidate_events)
 
 touch(joinpath(edir, FLAG_HOST_QUEUE_BEGIN))
 
