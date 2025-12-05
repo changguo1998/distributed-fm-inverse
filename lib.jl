@@ -55,7 +55,7 @@ const LOCK_SERVER_UNPACK_LOG = abspath(PRJ_ROOT_PATH, "var/server_unpack_log.loc
 const LOCK_SERVER_INVERSE_LOG = abspath(PRJ_ROOT_PATH, "var/server_inverse_log")
 const LOCK_SERVER_RESULT_LOG = abspath(PRJ_ROOT_PATH, "var/server_result_log.lock")
 
-const NODE_LIST_FILE = abspath(PRJ_ROOT_PATH, "config/node-list.toml")
+const NODE_LIST_FILE = abspath(PRJ_ROOT_PATH, "config/node-list-test.toml")
 const SERVER_SETTING_FILE = abspath(PRJ_ROOT_PATH, "config/svr.toml")
 
 function hashstr(s::String)
@@ -106,7 +106,7 @@ function log_msg(prefix::String, msg...)
 
     get_lock(LOG_SETTING.lock)
     t = now()
-    tstr = Dates.format(t, "yyyy-mm-dd HH:MM:SS")
+    tstr = Dates.format(t, "yyyy-mm-dd HH:MM:SS.sss")
     headline = "[$tstr|$prefix] "
     L = length(headline)
     open(LOG_SETTING.log, "a") do io
@@ -115,7 +115,7 @@ function log_msg(prefix::String, msg...)
             println(io, " "^L, line)
         end
     end
-    release_lock(LOG_SETTING.lockf)
+    release_lock(LOG_SETTING.lock)
     return nothing
 end
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env julia
 include(joinpath(@__DIR__, "../lib.jl"))
-get_single_process_lock(@__DIR__)
+get_single_process_lock(@__FILE__)
 
 while true
     if isfile(FLAG_SERVER_UPLOADED)
@@ -18,4 +18,4 @@ open(STATUS_SERVER, "w") do io
     ))
 end
 
-release_single_process_lock(@__DIR__)
+release_single_process_lock(@__FILE__)

@@ -7,8 +7,7 @@ function help()
     println("""
     Usage: julia deploy.jl hostname
 
-    available host names:
-""")
+    available host names:""")
     for s in nodes.servers
         println(repeat(" ", 8), s.hostname)
     end
@@ -22,11 +21,12 @@ end
 target_hostname = ARGS[1]
 idxs = findall(s->s.hostname==target_hostname, nodes.servers)
 if isempty(idxs)
+    @info "host name not found"
     help()
     exit(0)
 end
-svr = hosts.servers[first(idxs)]\
-cmd = Cmd(`rsync -avz --delete $(abspath(@__DIR__, "..")) $(svr.user)@$(svr.ip):$(svr.system_root)`)
+svr = nodes.servers[first(idxs)]
+cmd = Cmd(`rsync -avz --delete --exclude=log/ --exclude=var/ --exclude=test/ $(abspath(@__DIR__, "..")) $(svr.user)@$(svr.ip):$(svr.system_root)`)
 
 run(cmd, devnull, devnull, devnull)
-@info "Succeed to deploy to $target_hostname"
+@info "Deployed to $target_hostname successfully"

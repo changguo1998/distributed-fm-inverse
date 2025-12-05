@@ -4,8 +4,8 @@
 # julia submit_to_host_buffer.jl /absolute/path/to/event
 
 include(joinpath(@__DIR__, "../lib.jl"))
-randstr(n::Integer) = join(rand(['A':'Z', 'a':'z', '0':'9'], n), "")
-get_single_process_lock(@__DIR__)
+randstr(n::Integer) = join(rand(['A':'Z'; 'a':'z'; '0':'9'], n))
+get_single_process_lock(@__FILE__)
 const LOG_SETTING = (log=LOG_HOST_QUEUE, lock=LOCK_HOST_QUEUE_LOG)
 
 nodes = host_load_node()
@@ -27,7 +27,7 @@ for d in nodes.host.monitor_directory
 end
 
 if isempty(candidate_events)
-    release_single_process_lock(@__DIR__)
+    release_single_process_lock(@__FILE__)
     exit(0)
 end
 
@@ -44,16 +44,14 @@ while true
     end
 end
 
-log_info("tag: $tag")
-
 cmd = Cmd(`tar czf $(abspath(BUFFER_HOST_UPLOAD, tag*"_input.tar.gz")) auto.jld2 greenfun`; dir=edir)
 
 try
     run(cmd)
-    log_info("pack up ", tag, " ", string(cmd))
+    log_info("pack up\n", edir, "\nto\n", tag)
 catch err
-    log_err("pack up failed")
-    release_single_process_lock(@__DIR__)
+    log_err("pack up failed:\n", edir)
+    release_single_process_lock(@__FILE__)
     error(err)
 end
 
@@ -74,4 +72,4 @@ release_lock(LOCK_HOST_QUEUE_STATUS_FILE)
 touch(joinpath(edir, FLAG_HOST_QUEUE_END))
 
 log_info("submit $edir to queue")
-release_single_process_lock(@__DIR__)
+release_single_process_lock(@__FILE__)

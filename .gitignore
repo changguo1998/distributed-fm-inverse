@@ -1,1 +1,4 @@
 *.tar.gz
+test/monitored_dir/
+var/
+log/

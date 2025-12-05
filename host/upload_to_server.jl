@@ -4,13 +4,13 @@
 # julia upload_to_server.jl
 
 include(joinpath(@__DIR__, "../lib.jl"))
-get_single_process_lock(@__DIR__)
+get_single_process_lock(@__FILE__)
 const LOG_SETTING = (log=LOG_HOST_UPLOAD, lock=LOCK_HOST_UPLOAD_LOG)
 
 buffered_event = readdir(BUFFER_HOST_UPLOAD)
 
 if isempty(buffered_event)
-    release_single_process_lock(@__DIR__)
+    release_single_process_lock(@__FILE__)
     exit(0)
 end
 
@@ -24,11 +24,11 @@ priority = map(nodes.servers) do svr
     if remaining < 0.5
         return -1
     end
-    return svr.priority * 10 + remaining
+    return svr.priority * 100 + remaining
 end
 
 if maximum(priority) < 0
-    release_single_process_lock(@__DIR__)
+    release_single_process_lock(@__FILE__)
     exit(0)
 end
 
@@ -66,6 +66,6 @@ catch err
     log_err("failed to send data to server $(svr.hostname)")
     error(err)
 finally
-    release_single_process_lock(@__DIR__)
+    release_single_process_lock(@__FILE__)
 end
 

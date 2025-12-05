@@ -1,6 +1,6 @@
 #!/usr/bin/env julia
 include(joinpath(@__DIR__, "../lib.jl"))
-get_single_process_lock(@__DIR__)
+get_single_process_lock(@__FILE__)
 LOG_SETTING = (log=LOG_HOST_DOWNLOAD, lock=LOCK_HOST_DOWNLOAD_LOG)
 
 nodes = host_load_node()
@@ -61,7 +61,7 @@ end
 host_wait_for_unpack = readdir(BUFFER_HOST_RESULT)
 
 if isempty(host_wait_for_unpack)
-    release_single_process_lock(@__DIR__)
+    release_single_process_lock(@__FILE__)
     exit(0)
 end
 
@@ -104,4 +104,4 @@ t["update_time"] = now()
 open(io->TOML.print(io, t), STATUS_QUEUE, "w")
 release_lock(LOCK_HOST_QUEUE_STATUS_FILE)
 
-release_single_process_lock(@__DIR__)
+release_single_process_lock(@__FILE__)
