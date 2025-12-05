@@ -84,6 +84,7 @@ for f in host_wait_for_unpack
     ])
     try
         run(cmd)
+        touch(joinpath(queue_info[tag], FLAG_HOST_INVERSION_FINISHED))
         push!(key_remove, tag)
         log_info("unpack $tag to $(queue_info[tag])")
     catch

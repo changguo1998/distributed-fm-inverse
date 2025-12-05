@@ -2,11 +2,16 @@
 include(joinpath(@__DIR__, "../lib.jl"))
 get_single_process_lock(@__FILE__)
 
-while true
+for _ = 1:5
     if isfile(FLAG_SERVER_UPLOADED)
         break
     end
-    sleep(rand(1:5))
+    sleep(rand(1:3))
+end
+
+if !isfile(FLAG_SERVER_UPLOADED)
+    release_single_process_lock(@__FILE__)
+    exit(0)
 end
 
 open(STATUS_SERVER, "w") do io

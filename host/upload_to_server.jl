@@ -16,7 +16,7 @@ end
 
 nodes = host_load_node()
 priority = map(nodes.servers) do svr
-    status = get_server_loading(svr)
+    status = get_server_loading(svr, nodes.host)
     if isnothing(status)
         return -1
     end

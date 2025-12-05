@@ -48,9 +48,9 @@ cmd = Cmd(`tar czf $(abspath(BUFFER_HOST_UPLOAD, tag*"_input.tar.gz")) auto.jld2
 
 try
     run(cmd)
-    log_info("pack up\n", edir, "\nto\n", tag)
+    log_info("enqueue ", tag, ", from ", edir)
 catch err
-    log_err("pack up failed:\n", edir)
+    log_err("failed to enqueue ", tag, ", from ", edir)
     release_single_process_lock(@__FILE__)
     error(err)
 end
@@ -70,6 +70,4 @@ open(io->TOML.print(io, t), STATUS_QUEUE, "w")
 release_lock(LOCK_HOST_QUEUE_STATUS_FILE)
 
 touch(joinpath(edir, FLAG_HOST_QUEUE_END))
-
-log_info("submit $edir to queue")
 release_single_process_lock(@__FILE__)
