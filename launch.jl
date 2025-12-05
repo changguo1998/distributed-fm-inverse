@@ -1,7 +1,13 @@
 #!/usr/bin/env julia
-
 include(joinpath(@__DIR__, "lib.jl"))
 
+# backup
+run(`tar czf bak_$(Dates.format(now(), "yyyymmddHHMMSS")).tar.gz log var`, devnull, devnull, devnull)
+
+# reset
+run(Cmd(`julia reset.jl`; dir=@__DIR__); devnull, devnull, devnull)
+
+# launch
 svr_setting = TOML.parsefile(SERVER_SETTING_FILE)
 nodes = host_load_node()
 
