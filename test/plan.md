@@ -2,9 +2,9 @@
 
 ## Tools
 
-- [ ] maintainer/deploy.jl
-- [ ] maintainer/update_server_setting.jl
-- [ ] install.jl
+- [x] maintainer/deploy.jl
+- [x] maintainer/update_server_setting.jl
+- [x] install.jl
 
 ## Host
 

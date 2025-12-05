@@ -2,3 +2,4 @@
 test/monitored_dir/
 var/
 log/
+config/svr.toml
