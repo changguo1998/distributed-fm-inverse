@@ -1,0 +1,19 @@
+update_date = 2025-12-03
+
+[[server]]
+hostname = "Room309"
+ip = "localhost"
+user = "guochang"
+system_root = "/home/guochang/Projects/distributed-fm-inverse"
+max_event_number = 2
+threads_per_event = 8
+priority = 2
+
+[host]
+hostname = "Room309"
+ip = "localhost"
+user = "guochang"
+system_root = "/home/guochang/Projects/distributed-fm-inverse"
+monitor_directory = [
+    "/home/guochang/Projects/distributed-fm-inverse/test/monitored_dir"
+]

@@ -26,7 +26,7 @@ if isempty(idxs)
     exit(0)
 end
 svr = nodes.servers[first(idxs)]
-cmd = Cmd(`rsync -avz --delete --exclude=log/ --exclude=var/ --exclude=test/ $(abspath(@__DIR__, "..")) $(svr.user)@$(svr.ip):$(svr.system_root)`)
+cmd = Cmd(`rsync -az --exclude=log/ --exclude=var/ --exclude=test/ --delete --delete-excluded $(abspath(@__DIR__, "..")) $(svr.user)@$(svr.ip):$(svr.system_root)`)
 
 run(cmd, devnull, devnull, devnull)
 @info "Deployed to $target_hostname successfully"

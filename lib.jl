@@ -1,3 +1,4 @@
+# ENV["JULIA_DEPOT_PATH"] = abspath(@__DIR__, "julia/")
 using Pkg
 Pkg.activate(@__DIR__)
 
@@ -5,6 +6,7 @@ using TOML, Dates, SHA
 
 const PRJ_ROOT_PATH = abspath(@__DIR__)
 const DRY_RUN = true
+const DEBUG = true
 
 # buffer dir
 const BUFFER_HOST_UPLOAD = abspath(@__DIR__, "var/host_upload")
@@ -55,7 +57,7 @@ const LOCK_SERVER_UNPACK_LOG = abspath(PRJ_ROOT_PATH, "var/server_unpack_log.loc
 const LOCK_SERVER_INVERSE_LOG = abspath(PRJ_ROOT_PATH, "var/server_inverse_log")
 const LOCK_SERVER_RESULT_LOG = abspath(PRJ_ROOT_PATH, "var/server_result_log.lock")
 
-const NODE_LIST_FILE = abspath(PRJ_ROOT_PATH, "config/node-list-test.toml")
+const NODE_LIST_FILE = abspath(PRJ_ROOT_PATH, "config/node-list-test-host-server.toml")
 const SERVER_SETTING_FILE = abspath(PRJ_ROOT_PATH, "config/svr.toml")
 
 function hashstr(s::String)
@@ -202,8 +204,22 @@ function host_load_node()
 end
 
 function get_server_loading(svr::InvServer, host::InvHost)
+    # flush
+    cmd_flush = Cmd([
+        "ssh",
+        svr.user*"@"*svr.ip,
+        "cd $(svr.system_root); bash dfmi.sh server/update_server_status.jl"
+    ])
+    try
+        @info cmd_flush
+        run(cmd_flush)
+    catch
+        return nothing
+    end
+
+    # download command
     if svr.hostname == host.hostname
-        cmd = Cmd(["cat", STATUS_HOST])
+        cmd = Cmd(["cat", STATUS_SERVER])
     else
         server_status_file = replace(STATUS_SERVER, PRJ_ROOT_PATH=>svr.system_root)
         cmd = Cmd(`ssh $(svr.user*"@"*svr.ip) "cat $(server_status_file)"`)

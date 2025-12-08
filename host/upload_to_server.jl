@@ -20,7 +20,7 @@ priority = map(nodes.servers) do svr
     if isnothing(status)
         return -1
     end
-    remaining = svr.max_event_number - length(status.input)
+    remaining = svr.max_event_number - length(status["input"])
     if remaining < 0.5
         return -1
     end

@@ -12,6 +12,10 @@ end
 cleanup("log")
 cleanup("var")
 
-run(`julia $(joinpath(PRJ_ROOT_PATH, "install.jl"))`, devnull, devnull, devnull)
-
+mkpath(BUFFER_HOST_UPLOAD)
+mkpath(BUFFER_HOST_RESULT)
+mkpath(BUFFER_SERVER_INPUT)
+mkpath(BUFFER_SERVER_RUN)
+mkpath(BUFFER_SERVER_RESULT)
+mkpath(joinpath(PRJ_ROOT_PATH, "log"))
 touch(FLAG_SERVER_UPLOADED)
