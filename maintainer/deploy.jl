@@ -29,4 +29,14 @@ svr = nodes.servers[first(idxs)]
 cmd = Cmd(`rsync -az --exclude=log/ --exclude=var/ --exclude=test/ --delete --delete-excluded $(abspath(@__DIR__, "..")) $(svr.user)@$(svr.ip):$(svr.system_root)`)
 
 run(cmd, devnull, devnull, devnull)
+
+run(Cmd([
+    "ssh",
+    svr.user*"@"*svr.ip,
+    """
+echo 'hostname = "$(svr.hostname)"' > $(replace(SERVER_SETTING_FILE, PRJ_ROOT_PATH=>svr.system_root))
+echo "max_event_number = $(svr.max_event_number)" >> $(replace(SERVER_SETTING_FILE, PRJ_ROOT_PATH=>svr.system_root))
+echo "threads_per_event = $(svr.threads_per_event)" >> $(replace(SERVER_SETTING_FILE, PRJ_ROOT_PATH=>svr.system_root))
+    """
+]))
 @info "Deployed to $target_hostname successfully"
