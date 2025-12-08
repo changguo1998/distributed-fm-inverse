@@ -26,7 +26,14 @@ if isempty(idxs)
     exit(0)
 end
 svr = nodes.servers[first(idxs)]
-cmd = Cmd(`rsync -az --exclude=log/ --exclude=var/ --exclude=test/ --delete --delete-excluded $(abspath(@__DIR__, "..")) $(svr.user)@$(svr.ip):$(svr.system_root)`)
+cmd = Cmd(["rsync", "-az", "--delete", "--delete-excluded",
+    "--exclude=log/",
+    "--exclude=var/",
+    "--exclude=test/",
+    "--exclude=julia/",
+    abspath(@__DIR__, ".."),
+    svr.user*"@"*svr.ip*":"*svr.system_root
+    ])
 
 run(cmd, devnull, devnull, devnull)
 
@@ -34,9 +41,9 @@ run(Cmd([
     "ssh",
     svr.user*"@"*svr.ip,
     """
-echo 'hostname = "$(svr.hostname)"' > $(replace(SERVER_SETTING_FILE, PRJ_ROOT_PATH=>svr.system_root))
-echo "max_event_number = $(svr.max_event_number)" >> $(replace(SERVER_SETTING_FILE, PRJ_ROOT_PATH=>svr.system_root))
-echo "threads_per_event = $(svr.threads_per_event)" >> $(replace(SERVER_SETTING_FILE, PRJ_ROOT_PATH=>svr.system_root))
+echo 'hostname = "$(svr.hostname)"' > $(SERVER_SETTING_FILE(svr))
+echo "max_event_number = $(svr.max_event_number)" >> $(SERVER_SETTING_FILE(svr))
+echo "threads_per_event = $(svr.threads_per_event)" >> $(SERVER_SETTING_FILE(svr))
     """
 ]))
 @info "Deployed to $target_hostname successfully"

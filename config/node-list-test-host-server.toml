@@ -5,7 +5,7 @@ hostname = "PowerEdge3"
 ip = "210.45.127.112"
 user = "guochang"
 system_root = "/data2/guochang/distributed-fm-inverse"
-max_event_number = 4
+max_event_number = 2
 threads_per_event = 32
 priority = 2
 
@@ -14,7 +14,7 @@ hostname = "Room309"
 ip = "localhost"
 user = "guochang"
 system_root = "/home/guochang/Projects/distributed-fm-inverse"
-max_event_number = 2
+max_event_number = 1
 threads_per_event = 8
 priority = 2
 

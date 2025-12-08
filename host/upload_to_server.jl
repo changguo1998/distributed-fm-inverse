@@ -36,7 +36,7 @@ i = argmax(priority)
 svr = nodes.servers[i]
 datafile = first(buffered_event)
 tag = replace(datafile, "_input.tar.gz"=>"")
-server_input_buffer = replace(BUFFER_SERVER_INPUT, PRJ_ROOT_PATH=>svr.system_root)
+server_input_buffer = BUFFER_SERVER_INPUT(svr)
 scpfrom = joinpath(BUFFER_HOST_UPLOAD, datafile)
 scpto = joinpath(server_input_buffer, datafile)
 
@@ -50,7 +50,7 @@ if svr.hostname == nodes.host.hostname
     cmd3 = Cmd(["touch",  FLAG_SERVER_UPLOADED])
 else
     server_address = svr.user*"@"*svr.ip
-    server_upload_flag_file = replace(FLAG_SERVER_UPLOADED, PRJ_ROOT_PATH=>svr.system_root)
+    server_upload_flag_file = FLAG_SERVER_UPLOADED(svr)
 
     cmd1 = Cmd(["ssh", server_address, "rm \"$(server_upload_flag_file)\""])
     cmd2 = Cmd(["scp", scpfrom, "$server_address:$scpto"])
@@ -60,7 +60,7 @@ end
 try
     run(cmd1)
     log_info("update upload flag: ", string(cmd1))
-    run(cmd2)
+    run(cmd2, devnull, devnull, devnull)
     log_info("send data: ", string(cmd2))
     rm(scpfrom; force=true)
     run(cmd3)

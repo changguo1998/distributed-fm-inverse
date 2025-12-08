@@ -8,12 +8,66 @@ const PRJ_ROOT_PATH = abspath(@__DIR__)
 const DRY_RUN = true
 const DEBUG = true
 
+struct InvServer <: Any
+    hostname::String
+    ip::String
+    user::String
+    system_root::String
+    max_event_number::Int
+    threads_per_event::Int
+    priority::Int
+end
+
+function InvServer(
+    hostname::AbstractString,
+    ip::AbstractString,
+    user::AbstractString,
+    system_root::AbstractString,
+    max_event_number::Integer,
+    threads_per_event::Integer,
+    priority::Integer)
+
+    return InvServer(
+        String(hostname),
+        String(ip),
+        String(user),
+        String(system_root),
+        Int(max_event_number),
+        Int(threads_per_event),
+        Int(priority)
+    )
+end
+
+struct InvHost <: Any
+    hostname::String
+    ip::String
+    user::String
+    system_root::String
+    monitor_directory::Vector{String}
+end
+
+function InvHost(
+    hostname::AbstractString,
+    ip::AbstractString,
+    user::AbstractString,
+    system_root::AbstractString,
+    monitor_directory::AbstractVector{<:AbstractString})
+
+    return InvHost(
+        String(hostname),
+        String(ip),
+        String(user),
+        String(system_root),
+        map(String, monitor_directory)
+    )
+end
+
 # buffer dir
 const BUFFER_HOST_UPLOAD = abspath(@__DIR__, "var/host_upload")
 const BUFFER_HOST_RESULT = abspath(@__DIR__, "var/host_result")
-const BUFFER_SERVER_INPUT = abspath(@__DIR__, "var/svr_input")
-const BUFFER_SERVER_RUN = abspath(@__DIR__, "var/svr_run")
-const BUFFER_SERVER_RESULT = abspath(@__DIR__, "var/svr_result")
+BUFFER_SERVER_INPUT(svr::InvServer) = abspath(svr.system_root, "var/svr_input")
+BUFFER_SERVER_RUN(svr::InvServer) = abspath(svr.system_root, "var/svr_run")
+BUFFER_SERVER_RESULT(svr::InvServer) = abspath(svr.system_root, "var/svr_result")
 
 # flag file
 # client event dir
@@ -32,7 +86,7 @@ const FLAG_SERVER_PACK_RESULT_BEGIN = "dfmi_svr_pack_result_begin.flag"
 const FLAG_SERVER_PACK_RESULT_END = "dfmi_svr_pack_result_end.flag"
 
 # server var
-const FLAG_SERVER_UPLOADED = abspath(PRJ_ROOT_PATH, "var/dfmi_svr_uploaded.flag")
+FLAG_SERVER_UPLOADED(svr::InvServer) = abspath(svr.system_root, "var/dfmi_svr_uploaded.flag")
 
 # log file
 const LOG_HOST_QUEUE = abspath(PRJ_ROOT_PATH, "log/host_submit.log")
@@ -43,7 +97,8 @@ const LOG_SERVER_INVERSE = abspath(PRJ_ROOT_PATH, "log/server_inverse.log")
 const LOG_SERVER_RESULT = abspath(PRJ_ROOT_PATH, "log/server_result.log")
 
 # status file
-const STATUS_SERVER = abspath(PRJ_ROOT_PATH, "var/svr_status.toml")
+# const STATUS_SERVER = abspath(PRJ_ROOT_PATH, "var/svr_status.toml")
+STATUS_SERVER(svr::InvServer) = abspath(svr.system_root, "var/svr_status.toml")
 const STATUS_HOST = abspath(PRJ_ROOT_PATH, "var/host_status.toml")
 const STATUS_QUEUE = abspath(PRJ_ROOT_PATH, "var/queue_status.toml")
 
@@ -57,8 +112,8 @@ const LOCK_SERVER_UNPACK_LOG = abspath(PRJ_ROOT_PATH, "var/server_unpack_log.loc
 const LOCK_SERVER_INVERSE_LOG = abspath(PRJ_ROOT_PATH, "var/server_inverse_log")
 const LOCK_SERVER_RESULT_LOG = abspath(PRJ_ROOT_PATH, "var/server_result_log.lock")
 
-const NODE_LIST_FILE = abspath(PRJ_ROOT_PATH, "config/node-list-test-host-host.toml")
-const SERVER_SETTING_FILE = abspath(PRJ_ROOT_PATH, "config/svr.toml")
+const NODE_LIST_FILE = abspath(PRJ_ROOT_PATH, "config/node-list-test-host-server.toml")
+SERVER_SETTING_FILE(svr::InvServer) = abspath(svr.system_root, "config/svr.toml")
 
 function hashstr(s::String)
     h = sha256(s)
@@ -126,60 +181,6 @@ log_warn(msg...) = log_msg(" WARN", msg...)
 log_err(msg...) = log_msg("ERROR", msg...)
 
 
-struct InvServer <: Any
-    hostname::String
-    ip::String
-    user::String
-    system_root::String
-    max_event_number::Int
-    threads_per_event::Int
-    priority::Int
-end
-
-function InvServer(
-    hostname::AbstractString,
-    ip::AbstractString,
-    user::AbstractString,
-    system_root::AbstractString,
-    max_event_number::Integer,
-    threads_per_event::Integer,
-    priority::Integer)
-
-    return InvServer(
-        String(hostname),
-        String(ip),
-        String(user),
-        String(system_root),
-        Int(max_event_number),
-        Int(threads_per_event),
-        Int(priority)
-    )
-end
-
-struct InvHost <: Any
-    hostname::String
-    ip::String
-    user::String
-    system_root::String
-    monitor_directory::Vector{String}
-end
-
-function InvHost(
-    hostname::AbstractString,
-    ip::AbstractString,
-    user::AbstractString,
-    system_root::AbstractString,
-    monitor_directory::AbstractVector{<:AbstractString})
-
-    return InvHost(
-        String(hostname),
-        String(ip),
-        String(user),
-        String(system_root),
-        map(String, monitor_directory)
-    )
-end
-
 function host_load_node()
     t = TOML.parsefile(NODE_LIST_FILE)
     svrs = map(t["server"]) do s
@@ -219,9 +220,9 @@ function get_server_loading(svr::InvServer, host::InvHost)
 
     # download command
     if svr.hostname == host.hostname
-        cmd = Cmd(["cat", STATUS_SERVER])
+        cmd = Cmd(["cat", STATUS_SERVER(svr)])
     else
-        server_status_file = replace(STATUS_SERVER, PRJ_ROOT_PATH=>svr.system_root)
+        server_status_file = STATUS_SERVER(svr)
         cmd = Cmd(`ssh $(svr.user*"@"*svr.ip) "cat $(server_status_file)"`)
     end
     try
