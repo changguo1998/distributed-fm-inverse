@@ -68,9 +68,11 @@ const BUFFER_HOST_RESULT = abspath(@__DIR__, "var/host_result")
 BUFFER_SERVER_INPUT(svr::InvServer) = abspath(svr.system_root, "var/svr_input")
 BUFFER_SERVER_RUN(svr::InvServer) = abspath(svr.system_root, "var/svr_run")
 BUFFER_SERVER_RESULT(svr::InvServer) = abspath(svr.system_root, "var/svr_result")
+BUFFER_SERVER_CLEAN(svr::InvServer) = abspath(svr.system_root, "var/svr_clean")
 BUFFER_SERVER_INPUT() = abspath(PRJ_ROOT_PATH, "var/svr_input")
 BUFFER_SERVER_RUN() = abspath(PRJ_ROOT_PATH, "var/svr_run")
 BUFFER_SERVER_RESULT() = abspath(PRJ_ROOT_PATH, "var/svr_result")
+BUFFER_SERVER_CLEAN() = abspath(PRJ_ROOT_PATH, "var/svr_clean")
 
 # flag file
 # client event dir
@@ -119,6 +121,7 @@ const LOCK_SERVER_RESULT_LOG = abspath(PRJ_ROOT_PATH, "var/server_result_log.loc
 
 const NODE_LIST_FILE = abspath(PRJ_ROOT_PATH, "config/node-list-test-host-server.toml")
 SERVER_SETTING_FILE(svr::InvServer) = abspath(svr.system_root, "config/svr.toml")
+SERVER_SETTING_FILE() = abspath(PRJ_ROOT_PATH, "config/svr.toml")
 
 function hashstr(s::String)
     h = sha256(s)

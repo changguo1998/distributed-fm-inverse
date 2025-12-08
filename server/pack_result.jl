@@ -3,7 +3,10 @@ include(joinpath(@__DIR__, "../lib.jl"))
 get_single_process_lock(@__FILE__)
 const LOG_SETTING = (log=LOG_SERVER_RESULT, lock=LOCK_SERVER_RESULT_LOG)
 
-event_finished = readdir(BUFFER_SERVER_RUN())
+event_finished = filter(readdir(BUFFER_SERVER_RUN())) do e
+    return isfile(joinpath(BUFFER_SERVER_RUN(), e, FLAG_SERVER_INVERSE_END)) ||
+        isfile(joinpath(BUFFER_SERVER_RUN(), e, FLAG_SERVER_INVERSE_FAILED))
+end
 
 if isempty(event_finished)
     release_single_process_lock(@__FILE__)
@@ -22,6 +25,14 @@ evt = first(wait_for_pack)
 edir = joinpath(BUFFER_SERVER_RUN(), evt)
 
 touch(joinpath(edir, FLAG_SERVER_PACK_RESULT_BEGIN))
+
+if !isdir(joinpath(edir, "result"))
+    touch(joinpath(edir, FLAG_SERVER_INVERSE_FAILED))
+end
+
+if isempty(readdir(joinpath(edir, "result")))
+    touch(joinpath(edir, FLAG_SERVER_INVERSE_FAILED))
+end
 
 if isfile(joinpath(edir, FLAG_SERVER_INVERSE_FAILED))
     touch(joinpath(edir, "inversion_failed.flag"))

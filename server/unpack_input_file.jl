@@ -25,7 +25,7 @@ mkpath(run_dir)
 cmd = Cmd(["tar", "xaf", joinpath(BUFFER_SERVER_INPUT(), tag * "_input.tar.gz"), "-C", run_dir])
 try
     run(cmd)
-    touch(joinpath(run_dir, FLAG_SERVER_UNPACKED()))
+    touch(joinpath(run_dir, FLAG_SERVER_UNPACKED))
     log_info("$tag unpacked successfully")
 catch e
     log_err("failed to unpack $tag")

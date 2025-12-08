@@ -23,14 +23,14 @@ log_info("call inverse for event $evt")
 
 touch(joinpath(BUFFER_SERVER_RUN(), evt, FLAG_SERVER_INVERSE_BEGIN))
 
-svrsetting = TOML.parsefile(SERVER_SETTING_FILE)
+svrsetting = TOML.parsefile(SERVER_SETTING_FILE())
 
-if DRY_RUN
-    cmd = Cmd(Cmd(["mkdir", "-p", joinpath(BUFFER_SERVER_RUN(), evt, "result"), ";",
-    "touch", joinpath(BUFFER_SERVER_RUN(), evt, "result/result.txt")]))
-else
-    cmd = Cmd(["julia", "-t", svrsetting["threads_per_event"], joinpath(@__DIR__, "inverse.jl"), joinpath(BUFFER_SERVER_RUN(), evt)])
-end
+callfile = DRY_RUN ? "inverse_dry.jl" : "inverse.jl"
+tenv = deepcopy(ENV)
+tenv["JULIA_DEPOT_PATH"] = abspath(PRJ_ROOT_PATH, "julia")
+
+cmd = Cmd(Cmd([joinpath(PRJ_ROOT_PATH, "julia", "bin", "julia"), "-t", string(svrsetting["threads_per_event"]),
+    joinpath(@__DIR__, "core", callfile), joinpath(BUFFER_SERVER_RUN(), evt)]); env = tenv)
 
 try
     run(cmd)

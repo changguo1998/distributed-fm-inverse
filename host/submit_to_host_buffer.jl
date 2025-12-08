@@ -18,7 +18,8 @@ for d in nodes.host.monitor_directory
         return isfile(joinpath(e, FLAG_HOST_PREPROCESS_END)) &&
            isfile(joinpath(e, "auto.jld2")) &&
            isdir(joinpath(e, "greenfun")) &&
-           (!isfile(joinpath(e, FLAG_HOST_QUEUE_BEGIN)))
+           (!isfile(joinpath(e, FLAG_HOST_QUEUE_BEGIN))) &&
+           (!isfile(joinpath(e, FLAG_HOST_INVERSION_FINISHED)))
     end
     if isempty(tmp_list)
         continue

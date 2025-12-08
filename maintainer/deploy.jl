@@ -30,7 +30,7 @@ cmd = Cmd(["rsync", "-az", "--delete", "--delete-excluded",
     "--exclude=log/",
     "--exclude=var/",
     "--exclude=test/",
-    "--exclude=julia/",
+    # "--exclude=julia/",
     abspath(@__DIR__, ".."),
     svr.user*"@"*svr.ip*":"*svr.system_root
     ])

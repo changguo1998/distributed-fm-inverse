@@ -1,6 +1,6 @@
 #!/usr/bin/bash
+set -eu
 root=/home/guochang/Projects/distributed-fm-inverse/
-set -e
 N=4
 
 reset
@@ -20,9 +20,10 @@ for((i=0; i<=$N; i++)); do
 done
 bash dfmi.sh server/update_server_status.jl
 
-exit 0
 set -x
 
 bash dfmi.sh server/unpack_input_file.jl
+
+exit 0
 bash dfmi.sh server/call_inverse.jl
 bash dfmi.sh server/pack_result.jl

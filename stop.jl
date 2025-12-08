@@ -17,5 +17,5 @@ cmd = Cmd(`tar czf $bkfile log var`; dir=@__DIR__)
 if DEBUG
     @info cmd
 end
-run(cmd, devnull, devnull, devnull)
+# run(cmd, devnull, devnull, devnull)
 @info "backup data to $bkfile"

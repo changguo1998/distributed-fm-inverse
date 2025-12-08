@@ -5,8 +5,6 @@ LOG_SETTING = (log=LOG_HOST_DOWNLOAD, lock=LOCK_HOST_DOWNLOAD_LOG)
 
 nodes = host_load_node()
 
-rm_cmds = Cmd[]
-
 for svr in nodes.servers
     status = get_server_loading(svr, nodes.host)
     if isnothing(status)
@@ -15,54 +13,30 @@ for svr in nodes.servers
     if isempty(status["result"])
         continue
     end
-    if svr.hostname == nodes.host.hostname
-        cmd_scp = Cmd([
-            "cp",
-            map(r->joinpath(BUFFER_SERVER_RESULT(), r*"_result.tar.gz"), status["result"])...,
-            BUFFER_HOST_RESULT
-            ])
-        cmd_rm = Cmd([
-            "rm", "-r",
-            map(r->joinpath(BUFFER_SERVER_INPUT(), r*"_input.tar.gz"), status["result"])...,
-            map(r->joinpath(BUFFER_SERVER_RUN(), r), status["result"])...,
-            map(r->joinpath(BUFFER_SERVER_RESULT(), r*"_result.tar.gz"), status["result"])...
-        ])
-    else
-        svr_address = svr.user * "@" * svr.ip
-        svr_input_buffer = BUFFER_SERVER_INPUT(svr)
-        svr_run_buffer = BUFFER_SERVER_RUN(svr)
-        svr_result_buffer = BUFFER_SERVER_RESULT(svr)
-        cmd_scp = Cmd([
-            "scp",
-            map(r->svr_address*":"*joinpath(svr_result_buffer, r*"_result.tar.gz"), status["result"])...,
-            BUFFER_HOST_RESULT
-        ])
-        cmd_rm = Cmd([
-            "ssh",
-            svr_address,
-            "rm $(map(r->joinpath(svr_input_buffer, r*"_input.tar.gz"), status["result"])...);",
-            "rm -r $(status["result"]...);",
-            "rm $(map(r->joinpath(svr_result_buffer, r*"_result.tar.gz"), status["result"])...);"
-        ])
-    end
-    if DEBUG
-        @info cmd_scp
-        @info cmd_rm
-    end
-    try
-        run(cmd_scp)
-        push!(rm_cmds, cmd_rm)
-        log_info("download from $(svr.hostname)")
-    catch err
-        log_err("error while downloading from $(svr.hostname)")
-    end
-end
-
-foreach(rm_cmds) do c
-    try
-        run(c)
-    finally
-        return nothing
+    svr_address = svr.user * "@" * svr.ip
+    svr_input_buffer = BUFFER_SERVER_INPUT(svr)
+    svr_run_buffer = BUFFER_SERVER_RUN(svr)
+    svr_result_buffer = BUFFER_SERVER_RESULT(svr)
+    svr_clean_buffer = BUFFER_SERVER_CLEAN(svr)
+    for r in status["result"]
+        if svr.hostname == nodes.host.hostname
+            cmd_scp = Cmd(["cp", joinpath(BUFFER_SERVER_RESULT(), r*"_result.tar.gz"), BUFFER_HOST_RESULT])
+            cmd_rm = Cmd(["touch", joinpath(svr_clean_buffer, r * ".flag")])
+        else
+            cmd_scp = Cmd(["scp", svr_address*":"*abspath(svr_result_buffer, r*"_result.tar.gz"), BUFFER_HOST_RESULT])
+            cmd_rm = Cmd(["ssh", svr_address, "touch $(joinpath(svr_clean_buffer, r * ".flag"))"])
+        end
+        if DEBUG
+            @info cmd_scp
+            @info cmd_rm
+        end
+        try
+            run(cmd_scp)
+            log_info("download from $(svr.hostname)")
+            run(cmd_rm)
+        catch err
+            log_err("error while downloading from $(svr.hostname)")
+        end
     end
 end
 

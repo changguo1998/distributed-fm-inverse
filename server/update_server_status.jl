@@ -14,7 +14,7 @@ if !isfile(FLAG_SERVER_UPLOADED())
     exit(0)
 end
 
-open(STATUS_SERVER, "w") do io
+open(STATUS_SERVER(), "w") do io
     TOML.print(io, Dict(
         "input" => map(t->replace(t, "_input.tar.gz"=>""), readdir(BUFFER_SERVER_INPUT())),
         "inverse" => readdir(BUFFER_SERVER_RUN()),
