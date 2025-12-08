@@ -13,4 +13,4 @@ cleanup("log")
 cleanup("test/monitored_dir")
 cleanup("var")
 
-run(`julia $(joinpath(PRJ_ROOT_PATH, "install.jl"))`, devnull, devnull, devnull)
+run(Cmd(`bash dfmi.sh reset.jl`; dir=PRJ_ROOT_PATH), devnull, devnull, devnull)

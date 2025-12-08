@@ -36,7 +36,13 @@ i = argmax(priority)
 svr = nodes.servers[i]
 datafile = first(buffered_event)
 tag = replace(datafile, "_input.tar.gz"=>"")
+server_input_buffer = replace(BUFFER_SERVER_INPUT, PRJ_ROOT_PATH=>svr.system_root)
 scpfrom = joinpath(BUFFER_HOST_UPLOAD, datafile)
+scpto = joinpath(server_input_buffer, datafile)
+
+if DEBUG
+    @info "upload file from $scpfrom to $scpto"
+end
 
 if svr.hostname == nodes.host.hostname
     cmd1 = Cmd(["rm", FLAG_SERVER_UPLOADED])
@@ -45,8 +51,6 @@ if svr.hostname == nodes.host.hostname
 else
     server_address = svr.user*"@"*svr.ip
     server_upload_flag_file = replace(FLAG_SERVER_UPLOADED, PRJ_ROOT_PATH=>svr.system_root)
-    server_input_buffer = replace(BUFFER_SERVER_INPUT, PRJ_ROOT_PATH=>svr.system_root)
-    scpto = joinpath(server_input_buffer, datafile)
 
     cmd1 = Cmd(["ssh", server_address, "rm \"$(server_upload_flag_file)\""])
     cmd2 = Cmd(["scp", scpfrom, "$server_address:$scpto"])

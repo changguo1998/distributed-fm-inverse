@@ -57,7 +57,7 @@ const LOCK_SERVER_UNPACK_LOG = abspath(PRJ_ROOT_PATH, "var/server_unpack_log.loc
 const LOCK_SERVER_INVERSE_LOG = abspath(PRJ_ROOT_PATH, "var/server_inverse_log")
 const LOCK_SERVER_RESULT_LOG = abspath(PRJ_ROOT_PATH, "var/server_result_log.lock")
 
-const NODE_LIST_FILE = abspath(PRJ_ROOT_PATH, "config/node-list-test-host-server.toml")
+const NODE_LIST_FILE = abspath(PRJ_ROOT_PATH, "config/node-list-test-host-host.toml")
 const SERVER_SETTING_FILE = abspath(PRJ_ROOT_PATH, "config/svr.toml")
 
 function hashstr(s::String)

@@ -8,7 +8,7 @@ if !isfile(FLAG_SERVER_UPLOADED)
     exit(0)
 end
 
-buffer_list = readdir(BUFFER_SERVER_INPUT)
+buffer_list = map(t->replace(t, "_input.tar.gz"=>""), readdir(BUFFER_SERVER_INPUT))
 inv_list = readdir(BUFFER_SERVER_RUN)
 wait_for_submit = setdiff(buffer_list, inv_list)
 
@@ -17,19 +17,18 @@ if isempty(wait_for_submit)
     exit(0)
 end
 
-f = first(wait_for_submit)
+tag = first(wait_for_submit)
 
-log_info("unpack $f")
-tag = replace(f, "_input.tar.gz"=>"")
+log_info("unpack $tag")
 run_dir = joinpath(BUFFER_SERVER_RUN, tag)
 mkpath(run_dir)
-cmd = Cmd(["tar", "xaf", joinpath(BUFFER_SERVER_INPUT, f), "-C", run_dir])
+cmd = Cmd(["tar", "xaf", joinpath(BUFFER_SERVER_INPUT, tag * "_input.tar.gz"), "-C", run_dir])
 try
     run(cmd)
     touch(joinpath(run_dir, FLAG_SERVER_UNPACKED))
-    log_info("$f unpacked successfully")
+    log_info("$tag unpacked successfully")
 catch e
-    log_error("failed to unpack $f")
+    log_err("failed to unpack $tag")
     error(e)
 finally
     release_single_process_lock(@__FILE__)

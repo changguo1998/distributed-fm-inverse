@@ -21,7 +21,7 @@ end
 evt = first(wait_for_pack)
 edir = joinpath(BUFFER_SERVER_RUN, evt)
 
-touch(joinpath(edir, FLAG_SERVER_RESULT_BEGIN))
+touch(joinpath(edir, FLAG_SERVER_PACK_RESULT_BEGIN))
 
 if isfile(joinpath(edir, FLAG_SERVER_INVERSE_FAILED))
     touch(joinpath(edir, "inversion_failed.flag"))
@@ -32,10 +32,10 @@ end
 
 try
     run(cmd)
-    touch(joinpath(edir, FLAG_SERVER_RESULT_END))
+    touch(joinpath(edir, FLAG_SERVER_PACK_RESULT_END))
     log_info("pack result for event $evt")
 catch err
-    log_error("failed to pack result for event $evt")
+    log_err("failed to pack result for event $evt")
     error(err)
 finally
     release_single_process_lock(@__FILE__)

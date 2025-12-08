@@ -8,7 +8,7 @@ nodes = host_load_node()
 rm_cmds = Cmd[]
 
 for svr in nodes.servers
-    status = get_server_loading(svr)
+    status = get_server_loading(svr, nodes.host)
     if isnothing(status)
         continue
     end
@@ -18,28 +18,32 @@ for svr in nodes.servers
     if svr.hostname == nodes.host.hostname
         cmd_scp = Cmd([
             "cp",
-            map(r->joinpath(BUFFER_SERVER_RESULT, r*"_result.tar.gz"), status["result"]),
+            map(r->joinpath(BUFFER_SERVER_RESULT, r*"_result.tar.gz"), status["result"])...,
             BUFFER_HOST_RESULT
             ])
         cmd_rm = Cmd([
             "rm",
-            map(r->joinpath(BUFFER_SERVER_RESULT, r*"_result.tar.gz"), status["result"])
+            map(r->joinpath(BUFFER_SERVER_RESULT, r*"_result.tar.gz"), status["result"])...
         ])
     else
         svr_address = svr.user * "@" * svr.ip
         svr_result_buffer = replace(BUFFER_SERVER_RESULT, PRJ_ROOT_PATH=>svr.system_root)
         cmd_scp = Cmd([
             "scp";
-            map(r->svr_address*":"*joinpath(svr_result_buffer, r*"_result.tar.gz"), status["result"]);
+            map(r->svr_address*":"*joinpath(svr_result_buffer, r*"_result.tar.gz"), status["result"])...;
             BUFFER_HOST_RESULT
         ])
         cmd_rm = Cmd([
             "ssh",
             svr_address,
             """
-rm $(map(r->joinpath(svr_result_buffer, r*"_result.tar.gz"), status["result"]))
+rm $(map(r->joinpath(svr_result_buffer, r*"_result.tar.gz"), status["result"])...)
             """
         ])
+    end
+    if DEBUG
+        @info cmd_scp
+        @info cmd_rm
     end
     try
         run(cmd_scp)

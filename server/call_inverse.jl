@@ -26,7 +26,9 @@ touch(joinpath(BUFFER_SERVER_RUN, evt, FLAG_SERVER_INVERSE_BEGIN))
 svrsetting = TOML.parsefile(SERVER_SETTING_FILE)
 
 if DRY_RUN
-    cmd = Cmd(`mkdir -p $(joinpath(BUFFER_SERVER_RUN, evt, "result")); sleep 5`)
+    cmd = Cmd(Cmd(["mkdir", "-p", joinpath(BUFFER_SERVER_RUN, evt, "result"), ";",
+    "touch", joinpath(BUFFER_SERVER_RUN, evt, "result/result.txt"), ";",
+    "sleep", "5"]))
 else
     cmd = Cmd(["julia", "-t", svrsetting["threads_per_event"], joinpath(@__DIR__, "inverse.jl"), joinpath(BUFFER_SERVER_RUN, evt)])
 end
@@ -37,6 +39,6 @@ try
     log_info("inversion for event $evt succeeded")
 catch err
     touch(joinpath(BUFFER_SERVER_RUN, evt, FLAG_SERVER_INVERSE_FAILED))
-    log_error("inversion for event $evt failed")
+    log_err("inversion for event $evt failed")
     error(err)
 end
