@@ -45,9 +45,9 @@ if DEBUG
 end
 
 if svr.hostname == nodes.host.hostname
-    cmd1 = Cmd(["rm", FLAG_SERVER_UPLOADED])
+    cmd1 = Cmd(["rm", FLAG_SERVER_UPLOADED()])
     cmd2 = Cmd(["cp", scpfrom, scpto])
-    cmd3 = Cmd(["touch",  FLAG_SERVER_UPLOADED])
+    cmd3 = Cmd(["touch",  FLAG_SERVER_UPLOADED()])
 else
     server_address = svr.user*"@"*svr.ip
     server_upload_flag_file = FLAG_SERVER_UPLOADED(svr)

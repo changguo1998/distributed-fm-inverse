@@ -18,12 +18,14 @@ for svr in nodes.servers
     if svr.hostname == nodes.host.hostname
         cmd_scp = Cmd([
             "cp",
-            map(r->joinpath(BUFFER_SERVER_RESULT, r*"_result.tar.gz"), status["result"])...,
+            map(r->joinpath(BUFFER_SERVER_RESULT(), r*"_result.tar.gz"), status["result"])...,
             BUFFER_HOST_RESULT
             ])
         cmd_rm = Cmd([
-            "rm",
-            map(r->joinpath(BUFFER_SERVER_RESULT, r*"_result.tar.gz"), status["result"])...
+            "rm", "-r",
+            map(r->joinpath(BUFFER_SERVER_INPUT(), r*"_input.tar.gz"), status["result"])...,
+            map(r->joinpath(BUFFER_SERVER_RUN(), r), status["result"])...,
+            map(r->joinpath(BUFFER_SERVER_RESULT(), r*"_result.tar.gz"), status["result"])...
         ])
     else
         svr_address = svr.user * "@" * svr.ip
@@ -31,8 +33,8 @@ for svr in nodes.servers
         svr_run_buffer = BUFFER_SERVER_RUN(svr)
         svr_result_buffer = BUFFER_SERVER_RESULT(svr)
         cmd_scp = Cmd([
-            "scp";
-            map(r->svr_address*":"*joinpath(svr_result_buffer, r*"_result.tar.gz"), status["result"])...;
+            "scp",
+            map(r->svr_address*":"*joinpath(svr_result_buffer, r*"_result.tar.gz"), status["result"])...,
             BUFFER_HOST_RESULT
         ])
         cmd_rm = Cmd([

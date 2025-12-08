@@ -68,6 +68,9 @@ const BUFFER_HOST_RESULT = abspath(@__DIR__, "var/host_result")
 BUFFER_SERVER_INPUT(svr::InvServer) = abspath(svr.system_root, "var/svr_input")
 BUFFER_SERVER_RUN(svr::InvServer) = abspath(svr.system_root, "var/svr_run")
 BUFFER_SERVER_RESULT(svr::InvServer) = abspath(svr.system_root, "var/svr_result")
+BUFFER_SERVER_INPUT() = abspath(PRJ_ROOT_PATH, "var/svr_input")
+BUFFER_SERVER_RUN() = abspath(PRJ_ROOT_PATH, "var/svr_run")
+BUFFER_SERVER_RESULT() = abspath(PRJ_ROOT_PATH, "var/svr_result")
 
 # flag file
 # client event dir
@@ -87,6 +90,7 @@ const FLAG_SERVER_PACK_RESULT_END = "dfmi_svr_pack_result_end.flag"
 
 # server var
 FLAG_SERVER_UPLOADED(svr::InvServer) = abspath(svr.system_root, "var/dfmi_svr_uploaded.flag")
+FLAG_SERVER_UPLOADED() = abspath(PRJ_ROOT_PATH, "var/dfmi_svr_uploaded.flag")
 
 # log file
 const LOG_HOST_QUEUE = abspath(PRJ_ROOT_PATH, "log/host_submit.log")
@@ -99,6 +103,7 @@ const LOG_SERVER_RESULT = abspath(PRJ_ROOT_PATH, "log/server_result.log")
 # status file
 # const STATUS_SERVER = abspath(PRJ_ROOT_PATH, "var/svr_status.toml")
 STATUS_SERVER(svr::InvServer) = abspath(svr.system_root, "var/svr_status.toml")
+STATUS_SERVER() = abspath(PRJ_ROOT_PATH, "var/svr_status.toml")
 const STATUS_HOST = abspath(PRJ_ROOT_PATH, "var/host_status.toml")
 const STATUS_QUEUE = abspath(PRJ_ROOT_PATH, "var/queue_status.toml")
 
