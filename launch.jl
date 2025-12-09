@@ -12,36 +12,44 @@ run(`bash dfmi.sh server/update_server_status.jl`, devnull, devnull, devnull)
 # launch
 svr_setting = TOML.parsefile(SERVER_SETTING_FILE())
 nodes = host_load_node()
+loading_time = let
+    t1 = now()
+    t2 = t1
+    try
+        run(Cmd(`bash dfmi.sh loading_time_test.jl`; dir=@__DIR__))
+    finally
+        t2 = now()
+    end
+    abs(t2 - t1) < Second(1) ? Second(1) : ceil(t2 - t1, Second)
+end
 
 planed_script = Tuple{String,Second}[]
-t_very_long = Minute(10)
-t_long = Second(20)
-t_short = Second(5)
+interval = max(loading_time, Second(5))
 if svr_setting["hostname"] == nodes.host.hostname
     append!(planed_script, [
-        ("host/submit_to_host_buffer.jl", t_short),
-        ("host/upload_to_server.jl", t_long),
-        ("host/download_result.jl", t_long),
+        ("host/submit_to_host_buffer.jl", interval),
+        ("host/upload_to_server.jl", interval),
+        ("host/download_result.jl", interval),
     ])
     idxs = findfirst(s->s.hostname == nodes.host.hostname, nodes.servers)
     if !isnothing(idxs)
         if nodes.servers[idxs].priority >= 0
             append!(planed_script, [
-                ("server/unpack_input_file.jl", t_long),
-                ("server/call_inverse.jl", t_long),
-                ("server/pack_result.jl", t_long),
-                ("server/update_server_status.jl", t_short),
-                ("server/cleanup_downloaded_result.jl", t_very_long)
+                ("server/unpack_input_file.jl", interval),
+                ("server/call_inverse.jl", interval),
+                ("server/pack_result.jl", interval),
+                ("server/update_server_status.jl", interval),
+                ("server/cleanup_downloaded_result.jl", interval)
             ])
         end
     end
 else
     append!(planed_script, [
-        ("server/unpack_input_file.jl", t_long),
-        ("server/call_inverse.jl", t_long),
-        ("server/pack_result.jl", t_long),
-        ("server/update_server_status.jl", t_short),
-        ("server/cleanup_downloaded_result.jl", t_very_long)
+        ("server/unpack_input_file.jl", interval),
+        ("server/call_inverse.jl", interval),
+        ("server/pack_result.jl", interval),
+        ("server/update_server_status.jl", interval),
+        ("server/cleanup_downloaded_result.jl", interval)
     ])
 end
 
@@ -60,6 +68,7 @@ while true
         rm(fstop)
         break
     end
+    script_is_called = false
     for i = eachindex(planed_script)
         if t - lastrun[i] >= planed_script[i][2]
             if DEBUG
@@ -68,8 +77,11 @@ while true
             local cmd = Cmd(`bash dfmi.sh $(planed_script[i][1])`; dir=@__DIR__)
             run(cmd; wait=false)
             lastrun[i] = t
+            script_is_called = true
         end
-        sleep(1)
+        sleep(loading_time)
     end
-    sleep(1)
+    if !script_is_called
+        sleep(loading_time)
+    end
 end
