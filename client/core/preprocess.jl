@@ -182,67 +182,6 @@ for s in stations
     end
 end
 
-# = autopick arrivals
-
-# pickflag = falses(length(stations))
-# while !all(pickflag)
-#     i = findfirst(!, pickflag)
-#     js = findall(s->(s["network"] == stations[i]["network"]) &&
-#         (s["station"] == stations[i]["station"]), stations)
-#     sacs = map(js) do j
-#         open(SeisTools.SAC.read, joinpath(dataroot, "sac", stations[j]["meta_file"]))
-#     end
-#     tp = map(sacs) do sacf
-#         # (it, _) = JuliaSourceMechanism.pick_windowratio(sacf.data, round(Int, 5.0/sacf.hdr["delta"]))
-#         (it, _) = JuliaSourceMechanism.pick_stalta(sacf.data,
-#             round(Int, 2.0/sacf.hdr["delta"]), round(Int, 10.0/sacf.hdr["delta"]))
-#         SeisTools.SAC.DateTime(sacf.hdr) + Millisecond(round(Int, sacf.hdr["b"]*1000 + it*sacf.hdr["delta"]*1000))
-#     end
-#     tp = minimum(tp)
-#     for j in js
-#         ip = findfirst(p->p["type"] == "P", stations[j]["phases"])
-#         if abs(stations[j]["phases"][ip]["at"] - TIME_DEFAULT) > Minute(1)
-#             continue
-#         end
-#         shift = round(Int, Millisecond(tp - stations[j]["base_trim"][1])/
-#             Millisecond(round(Int, stations[j]["meta_dt"]*1000)))
-#         # l = round(Int, 0.5/stations[j]["meta_dt"])
-#         # stations[j]["phases"][ip]["polarity_obs"] = sign(sum(sacs[j-minimum(js)+1].data[shift:shift+l]))
-#         stations[j]["phases"][ip]["polarity_obs"] = 0.0
-#         stations[j]["phases"][ip]["at"] = tp
-#     end
-#     ip = findfirst(p->p["type"] == "P", stations[js[1]]["phases"])
-#     tp = stations[js[1]]["phases"][ip]["at"]
-#     w = zeros(minimum(length.(getfield.(sacs, :data))), length(sacs))
-#     for i = eachindex(sacs)
-#         w[:, i] .= sacs[i].data[1:size(w, 1)]
-#     end
-
-#     ws = SeisTools.DataProcess.cut(w, SeisTools.SAC.DateTime(sacs[1].hdr), tp-Second(20),
-#         tp+Second(60), Millisecond(round(Int, sacs[1].hdr["delta"]*1000)))
-#     wt = deepcopy(ws[2])
-#     # for i = axes(wt, 2)
-#     #     wt[:, i] = SeisTools.DataProcess.bandpass(ws[2][:, i], 0.05, 1.0, 1/sacs[1].hdr["delta"])
-#     # end
-#     W = round(Int, 10.0/sacs[1].hdr["delta"])
-#     (_, r1) = JuliaSourceMechanism.pick_windowratio(wt[:, 1], W)
-#     # (_, r2) = JuliaSourceMechanism.pick_freedom(wt, W)
-#     (_, it1) = findmax(r1)
-#     # (_, it2) = findmax(r2)
-#     it1 += W
-#     # it2 += W
-#     for j in js
-#         is = findfirst(p->p["type"] == "S", stations[j]["phases"])
-#         if abs(stations[j]["phases"][is]["at"] - TIME_DEFAULT) > Minute(1)
-#             continue
-#         end
-#         stations[j]["phases"][is]["at"] = tp + Millisecond(round(Int, it1*sacs[1].hdr["delta"]*1000))
-#     end
-#     for j in js
-#         pickflag[j] = true
-#     end
-# end
-
 # = construct env data
 
 env = Dict("algorithm" => algorithm,
