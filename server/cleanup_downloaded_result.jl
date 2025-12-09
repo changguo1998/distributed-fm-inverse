@@ -3,11 +3,7 @@ include(joinpath(@__DIR__, "../lib.jl"))
 get_single_process_lock(@__FILE__)
 
 function _rm(f::AbstractString)
-    if isfile(f)
-        rm(f; force=true)
-    elseif isdir(f)
-        rm(f; recursive=true, force=true)
-    end
+    rm(f; recursive=true, force=true)
     return nothing
 end
 

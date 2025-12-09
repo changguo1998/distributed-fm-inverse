@@ -14,7 +14,7 @@ svr_setting = TOML.parsefile(SERVER_SETTING_FILE())
 nodes = host_load_node()
 
 planed_script = Tuple{String,Second}[]
-t_very_long = Minute(1)
+t_very_long = Minute(10)
 t_long = Second(20)
 t_short = Second(5)
 if svr_setting["hostname"] == nodes.host.hostname
@@ -62,9 +62,9 @@ while true
     end
     for i = eachindex(planed_script)
         if t - lastrun[i] >= planed_script[i][2]
-            @info "\n\n[$t] run script: $(planed_script[i][1])"
+            @info "[$t] run script: $(planed_script[i][1])"
             local cmd = Cmd(`bash dfmi.sh $(planed_script[i][1])`; dir=@__DIR__)
-            run(cmd; wait=true)
+            run(cmd; wait=false)
             lastrun[i] = t
         end
         sleep(0.5)
