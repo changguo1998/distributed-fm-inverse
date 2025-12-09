@@ -14,8 +14,6 @@ function main()
             continue
         end
         svr_address = svr.user * "@" * svr.ip
-        svr_input_buffer = BUFFER_SERVER_INPUT(svr)
-        svr_run_buffer = BUFFER_SERVER_RUN(svr)
         svr_result_buffer = BUFFER_SERVER_RESULT(svr)
         svr_clean_buffer = BUFFER_SERVER_CLEAN(svr)
         for r in status["result"]
@@ -46,16 +44,8 @@ function main()
         return nothing
     end
 
-    queue_info = nothing
-    try
-        get_lock(LOCK_HOST_QUEUE_STATUS_FILE)
-        queue_info = TOML.parsefile(STATUS_QUEUE)
-    catch err
-        error(err)
-    finally
-        release_lock(LOCK_HOST_QUEUE_STATUS_FILE)
-    end
-    key_remove = String[]
+    queue_info = TOML.parsefile(STATUS_QUEUE)
+    # key_remove = String[]
     for f in host_wait_for_unpack
         tag = replace(f, "_result.tar.gz"=>"")
         if !haskey(queue_info, tag)
@@ -73,11 +63,12 @@ function main()
         try
             run(cmd)
             touch(joinpath(queue_info[tag], FLAG_HOST_INVERSION_FINISHED))
-            push!(key_remove, tag)
+            # push!(key_remove, tag)
             rm(joinpath(BUFFER_HOST_RESULT, f); force=true)
             log_info("unpack $tag to $(queue_info[tag])")
-        catch
+        catch err
             log_err("error while unpacking $f")
+            error(err)
         end
     end
 
@@ -95,11 +86,12 @@ function main()
     # release_lock(LOCK_HOST_QUEUE_STATUS_FILE)
 end
 
-get_single_process_lock(@__FILE__)
 try
+    get_single_process_lock(@__FILE__)
     main()
 catch err
     log_err("failed to run script")
     log_err(string(err))
+finally
+    release_single_process_lock(@__FILE__)
 end
-release_single_process_lock(@__FILE__)

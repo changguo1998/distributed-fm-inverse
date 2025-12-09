@@ -31,11 +31,18 @@ function main()
     edir = rand(candidate_events)
     touch(joinpath(edir, FLAG_HOST_QUEUE_BEGIN))
 
+    if isfile(STATUS_QUEUE)
+        used_tag = let
+            local t = TOML.parsefile(STATUS_QUEUE)
+            ks = String.(collect(keys(t)))
+        end
+    else
+        used_tag = String[]
+    end
     tag = ""
     while true
-        global tag
         tag = randstr(16)
-        if !isfile(abspath(BUFFER_HOST_UPLOAD, tag*"_input.tar.gz"))
+        if !isfile(abspath(BUFFER_HOST_UPLOAD, tag*"_input.tar.gz")) && !(tag in used_tag)
             break
         end
     end
@@ -50,17 +57,10 @@ function main()
         error(err)
     end
 
-    t = Dict()
-
     if isfile(STATUS_QUEUE)
-        try
-            get_lock(LOCK_HOST_QUEUE_STATUS_FILE)
-            t = TOML.parsefile(STATUS_QUEUE)
-        catch err
-            release_lock(LOCK_HOST_QUEUE_STATUS_FILE)
-            log_err("failed to read ", STATUS_QUEUE)
-            error(err)
-        end
+        t = TOML.parsefile(STATUS_QUEUE)
+    else
+        t = Dict()
     end
 
     t[tag] = edir
@@ -73,13 +73,15 @@ function main()
     touch(joinpath(edir, FLAG_HOST_QUEUE_END))
 end
 
-get_single_process_lock(@__FILE__)
-get_lock(LOCK_HOST_STATUS_UPLOADING)
 try
+    get_single_process_lock(@__FILE__)
+    # get_lock(LOCK_HOST_STATUS_UPLOADING)
     main()
 catch err
     log_err("failed to run script")
     log_err(string(err))
+    error(err)
+finally
+    # release_lock(LOCK_HOST_STATUS_UPLOADING)
+    release_single_process_lock(@__FILE__)
 end
-release_lock(LOCK_HOST_STATUS_UPLOADING)
-release_single_process_lock(@__FILE__)

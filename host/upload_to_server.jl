@@ -11,13 +11,10 @@ function main()
 
     t = nothing
     try
-        get_lock(LOCK_HOST_QUEUE_STATUS_FILE)
         t = TOML.parsefile(STATUS_QUEUE)
     catch err
         log_err("error while reading STATUS_QUEUE file.")
         error(err)
-    finally
-        release_lock(LOCK_HOST_QUEUE_STATUS_FILE)
     end
 
     if isnothing(t)
@@ -107,7 +104,7 @@ function main()
         if DEBUG
             log_info("update upload flag: ", string(cmd1))
         end
-    catch err
+    catch
         log_warn("rm server $(svr.hostname) upload flag failed")
     end
 
@@ -128,19 +125,21 @@ function main()
         if DEBUG
             log_info("update upload flag: ", string(cmd3))
         end
-    catch err
+    catch
         log_warn("touch server $(svr.hostname) upload flag failed")
     end
 end
 
 
-get_single_process_lock(@__FILE__)
-get_lock(LOCK_HOST_STATUS_UPLOADING)
 try
+    get_single_process_lock(@__FILE__)
+    # get_lock(LOCK_HOST_STATUS_UPLOADING)
     main()
 catch err
     log_err("failed to run script")
     log_err(string(err))
+    error(err)
+finally
+    # release_lock(LOCK_HOST_STATUS_UPLOADING)
+    release_single_process_lock(@__FILE__)
 end
-release_lock(LOCK_HOST_STATUS_UPLOADING)
-release_single_process_lock(@__FILE__)
