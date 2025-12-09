@@ -5,7 +5,7 @@ Pkg.activate(@__DIR__)
 using TOML, Dates, SHA
 
 const PRJ_ROOT_PATH = abspath(@__DIR__)
-const DRY_RUN = true
+const DRY_RUN = false
 const DEBUG = true
 
 struct InvServer <: Any
@@ -119,6 +119,8 @@ const LOCK_SERVER_UNPACK_LOG = abspath(PRJ_ROOT_PATH, "var/server_unpack_log.loc
 const LOCK_SERVER_INVERSE_LOG = abspath(PRJ_ROOT_PATH, "var/server_inverse_log")
 const LOCK_SERVER_RESULT_LOG = abspath(PRJ_ROOT_PATH, "var/server_result_log.lock")
 
+const LOCK_HOST_STATUS_UPLOADING = abspath(PRJ_ROOT_PATH, "var/host_uploading.lock")
+
 const NODE_LIST_FILE = abspath(PRJ_ROOT_PATH, "config/node-list-test-host-server.toml")
 SERVER_SETTING_FILE(svr::InvServer) = abspath(svr.system_root, "config/svr.toml")
 SERVER_SETTING_FILE() = abspath(PRJ_ROOT_PATH, "config/svr.toml")
@@ -130,22 +132,31 @@ end
 
 function get_lock(f::String)
     n = 1
-    while isfile(f)
+    for _ = 1:5
+        if !isfile(f)
+            touch(f)
+            return nothing
+        end
         sleep(0.1 * n)
         n = rand(1:5)
     end
-    return nothing
+    exit(0)
 end
 
 function release_lock(f::String)
     if isfile(f)
-        rm(f)
+        rm(f; force=true)
     end
     return nothing
 end
 
 function get_single_process_lock(f::String)
-    lockfile = joinpath(PRJ_ROOT_PATH, "var", hashstr(f)*".lock")
+    fn = let
+        (p1, _) = splitext(abspath(f))
+        (_, p2) = splitdir(p1)
+        p2
+    end
+    lockfile = joinpath(PRJ_ROOT_PATH, "var", hashstr(f)*"_"*fn*".lock")
     if isfile(lockfile)
         exit(0)
     end
@@ -154,7 +165,12 @@ function get_single_process_lock(f::String)
 end
 
 function release_single_process_lock(f::String)
-    lockfile = joinpath(PRJ_ROOT_PATH, "var", hashstr(f)*".lock")
+    fn = let
+        (p1, _) = splitext(abspath(f))
+        (_, p2) = splitdir(p1)
+        p2
+    end
+    lockfile = joinpath(PRJ_ROOT_PATH, "var", hashstr(f)*"_"*fn*".lock")
     if isfile(lockfile)
         rm(lockfile; force=true)
     end
@@ -214,17 +230,17 @@ end
 
 function get_server_loading(svr::InvServer, host::InvHost)
     # flush
-    cmd_flush = Cmd([
-        "ssh",
-        svr.user*"@"*svr.ip,
-        "cd $(svr.system_root); bash dfmi.sh server/update_server_status.jl"
-    ])
-    try
-        @info cmd_flush
-        run(cmd_flush)
-    catch
-        return nothing
-    end
+    # cmd_flush = Cmd([
+    #     "ssh",
+    #     svr.user*"@"*svr.ip,
+    #     "cd $(svr.system_root); bash dfmi.sh server/update_server_status.jl"
+    # ])
+    # try
+    #     @info cmd_flush
+    #     run(cmd_flush)
+    # catch
+    #     return nothing
+    # end
 
     # download command
     if svr.hostname == host.hostname
@@ -235,7 +251,11 @@ function get_server_loading(svr::InvServer, host::InvHost)
     end
     try
         s = read(cmd, String)
-        return TOML.parse(s)
+        t = TOML.parse(s)
+        if !all(k->haskey(t, k), ["input", "inverse", "result", "update_time"])
+            return nothing
+        end
+        return t
     catch
         return nothing
     end

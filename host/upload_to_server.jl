@@ -1,17 +1,48 @@
 #!/usr/bin/env julia
-
-# usage
-# julia upload_to_server.jl
-
 include(joinpath(@__DIR__, "../lib.jl"))
 get_single_process_lock(@__FILE__)
+get_lock(LOCK_HOST_STATUS_UPLOADING)
 const LOG_SETTING = (log=LOG_HOST_UPLOAD, lock=LOCK_HOST_UPLOAD_LOG)
 
-buffered_event = readdir(BUFFER_HOST_UPLOAD)
-
-if isempty(buffered_event)
+if !isfile(STATUS_QUEUE)
+    if DEBUG
+        @info "No status queue file found. Exiting."
+    end
+    release_lock(LOCK_HOST_STATUS_UPLOADING)
     release_single_process_lock(@__FILE__)
     exit(0)
+end
+
+get_lock(LOCK_HOST_QUEUE_STATUS_FILE)
+t = TOML.parsefile(STATUS_QUEUE)
+release_lock(LOCK_HOST_QUEUE_STATUS_FILE)
+
+if length(collect(keys(t))) < 2
+    if DEBUG
+        @info "No events in queue status. Exiting."
+    end
+    release_lock(LOCK_HOST_STATUS_UPLOADING)
+    release_single_process_lock(@__FILE__)
+    exit(0)
+end
+event_zipped = collect(keys(t))
+event_not_uploaded = map(f->replace(f, "_input.tar.gz"=>""), readdir(BUFFER_HOST_UPLOAD))
+buffered_event = intersect(event_zipped, event_not_uploaded)
+
+if isempty(buffered_event)
+    if DEBUG
+        @info "No events to upload. Exiting."
+    end
+    release_lock(LOCK_HOST_STATUS_UPLOADING)
+    release_single_process_lock(@__FILE__)
+    exit(0)
+end
+
+tag = first(buffered_event)
+
+if DEBUG
+    @info "Uploading $tag"
+    @info "Check server status"
 end
 
 nodes = host_load_node()
@@ -27,18 +58,28 @@ priority = map(nodes.servers) do svr
     return svr.priority * 100 + remaining
 end
 
+if DEBUG
+    @info "Priority: $priority"
+end
+
 if maximum(priority) < 0
+    if DEBUG
+        @info "No available server. Exiting."
+    end
+    release_lock(LOCK_HOST_STATUS_UPLOADING)
     release_single_process_lock(@__FILE__)
     exit(0)
 end
 
 i = argmax(priority)
 svr = nodes.servers[i]
-datafile = first(buffered_event)
-tag = replace(datafile, "_input.tar.gz"=>"")
-server_input_buffer = BUFFER_SERVER_INPUT(svr)
-scpfrom = joinpath(BUFFER_HOST_UPLOAD, datafile)
-scpto = joinpath(server_input_buffer, datafile)
+
+if DEBUG
+    @info "Selected server: $svr"
+end
+
+scpfrom = joinpath(BUFFER_HOST_UPLOAD, tag*"_input.tar.gz")
+scpto = joinpath(BUFFER_SERVER_INPUT(svr), tag*"_input.tar.gz")
 
 if DEBUG
     @info "upload file from $scpfrom to $scpto"
@@ -59,17 +100,35 @@ end
 
 try
     run(cmd1)
-    log_info("update upload flag: ", string(cmd1))
-    run(cmd2, devnull, devnull, devnull)
-    log_info("send data: ", string(cmd2))
-    rm(scpfrom; force=true)
-    run(cmd3)
-    log_info("update upload flag: ", string(cmd3))
-    log_info("upload data file $datafile to server $(svr.hostname)")
+    if DEBUG
+        log_info("update upload flag: ", string(cmd1))
+    end
 catch err
-    log_err("failed to send data to server $(svr.hostname)")
-    error(err)
-finally
-    release_single_process_lock(@__FILE__)
+    log_warn("rm server $(svr.hostname) upload flag failed")
 end
 
+try
+    run(cmd2, devnull, devnull, devnull)
+    if DEBUG
+        log_info("send data: ", string(cmd2))
+    end
+    rm(scpfrom; force=true)
+    log_info("upload data file $tag to server $(svr.hostname)")
+catch err
+    log_err("failed to send data to server $(svr.hostname)")
+    release_lock(LOCK_HOST_STATUS_UPLOADING)
+    release_single_process_lock(@__FILE__)
+    error(err)
+end
+
+try
+    run(cmd3)
+    if DEBUG
+        log_info("update upload flag: ", string(cmd3))
+    end
+catch err
+    log_warn("touch server $(svr.hostname) upload flag failed")
+end
+
+release_lock(LOCK_HOST_STATUS_UPLOADING)
+release_single_process_lock(@__FILE__)

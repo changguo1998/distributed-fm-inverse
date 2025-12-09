@@ -55,6 +55,7 @@ for f in host_wait_for_unpack
     tag = replace(f, "_result.tar.gz"=>"")
     if !haskey(queue_info, tag)
         log_err("Cannot find $tag in queue info")
+        rm(joinpath(BUFFER_HOST_RESULT, f); force=true)
         continue
     end
     cmd = Cmd([
@@ -68,6 +69,7 @@ for f in host_wait_for_unpack
         run(cmd)
         touch(joinpath(queue_info[tag], FLAG_HOST_INVERSION_FINISHED))
         push!(key_remove, tag)
+        rm(joinpath(BUFFER_HOST_RESULT, f); force=true)
         log_info("unpack $tag to $(queue_info[tag])")
     catch
         log_err("error while unpacking $f")

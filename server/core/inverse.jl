@@ -47,7 +47,7 @@ for m in rawenv["algorithm"]["misfit"], f in [XCorr, Polarity, PSR, DTW, AbsShif
 end
 
 if length(rawenv["stations"]) < rawenv["algorithm"]["minimum_stations"]
-    error("Not enough stations")
+    error("No enough stations")
 end
 
 # @info "Run"
@@ -103,10 +103,10 @@ misfitlist = [minval]
     (_mech, _minval, _minval_xcorr, _minval_pol)
 end
 
-hmin = nenv["algorithm"]["step2_min_h"]
-dh = nenv["algorithm"]["step2_dh"]
-hmax = nenv["algorithm"]["step2_max_h"]
-r = nenv["algorithm"]["step2_radius"]
+hmin = nenv["algorithm"]["step2_min_depth"]
+dh = nenv["algorithm"]["step2_d_depth"]
+hmax = nenv["algorithm"]["step2_max_depth"]
+r = nenv["algorithm"]["step2_depth_radius"]
 
 h = round((nenv["algorithm"]["searchdepth"] - hmin)/dh) * dh + hmin
 hlist = Float64[]
@@ -118,7 +118,7 @@ for _ = 1:10
     append!(hlist, tl)
     append!(misfitlist, val)
     local h2 = hlist[argmin(misfitlist)]
-    if abs(h2 - h) < nenv["algorithm"]["step2_stop_iterate_when_change_less_than"]
+    if abs(h2 - h) < nenv["algorithm"]["step2_stop_iterate_when_depth_change_less_than"]
         h = h2
         break
     end
@@ -149,22 +149,22 @@ nenv = reselect_channel(nenv, dc2ts(mech), xcorr_threshold)
 nenv["algorithm"]["xcorr_threshold"] = xcorr_threshold
 # (mech, minval, minval_xcorr, minval_pol) = inverse_focalmech!(nenv, misfits)
 
-hmin = nenv["algorithm"]["step3_min_h"]
-dh = nenv["algorithm"]["step3_dh"]
-hmax = nenv["algorithm"]["step3_max_h"]
-r = nenv["algorithm"]["step3_radius"]
+hmin = nenv["algorithm"]["step3_min_depth"]
+dh = nenv["algorithm"]["step3_d_depth"]
+hmax = nenv["algorithm"]["step3_max_depth"]
+r = nenv["algorithm"]["step3_depth_radius"]
 
 h = round((nenv["algorithm"]["searchdepth"] - hmin)/dh) * dh + hmin
 hlist = Float64[]
 misfitlist = Float64[]
 for _ = 1:10
     global h
-    local tl = filter(_h->!(_h in hlist), max(dh, h-r):dh:min(30.0, h+r))
-    append!(hlist, tl)
+    local tl = filter(_h->!(_h in hlist), max(hmin, h-r):dh:min(hmax, h+r))
     local val = inverse_depth(tl, nenv, misfits)
+    append!(hlist, tl)
     append!(misfitlist, val)
     local h2 = hlist[argmin(misfitlist)]
-    if abs(h2 - h) < nenv["algorithm"]["step2_stop_iterate_when_change_less_than"]
+    if abs(h2 - h) < nenv["algorithm"]["step3_stop_iterate_when_depth_change_less_than"]
         h = h2
         break
     else

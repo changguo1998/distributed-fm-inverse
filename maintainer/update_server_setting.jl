@@ -9,13 +9,15 @@ for s in nodes.servers
             "ssh",
             s.user*"@"*s.ip,
             """
-echo 'hostname = "$(s.hostname)"' > $(SERVER_SETTING_FILE(svr))
-echo "max_event_number = $(s.max_event_number)" >> $(SERVER_SETTING_FILE(svr))
-echo "threads_per_event = $(s.threads_per_event)" >> $(SERVER_SETTING_FILE(svr))
+echo 'hostname = "$(s.hostname)"' > $(SERVER_SETTING_FILE(s))
+echo "max_event_number = $(s.max_event_number)" >> $(SERVER_SETTING_FILE(s))
+echo "threads_per_event = $(s.threads_per_event)" >> $(SERVER_SETTING_FILE(s))
             """
         ]))
         @info "server $(s.hostname) updated"
-    catch
+    catch err
+        @error "failed to update server $(s.hostname)"
+        @error err
         continue
     end
 end

@@ -16,7 +16,7 @@ user = "guochang"
 system_root = "/home/guochang/Projects/distributed-fm-inverse"
 max_event_number = 1
 threads_per_event = 8
-priority = 2
+priority = -1
 
 [host]
 hostname = "Room309"
@@ -24,5 +24,6 @@ ip = "localhost"
 user = "guochang"
 system_root = "/home/guochang/Projects/distributed-fm-inverse"
 monitor_directory = [
-    "/home/guochang/Projects/distributed-fm-inverse/test/monitored_dir"
+    "/home/guochang/Projects/distributed-fm-inverse/test/monitored_dir",
+    "/data/real_time_system_data/db_v1/fm"
 ]

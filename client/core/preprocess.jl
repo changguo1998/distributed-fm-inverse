@@ -7,7 +7,7 @@ using DelimitedFiles, SeisTools, TOML, Dates, JuliaSourceMechanism,
 Geo = SeisTools.Geodesy
 
 include(joinpath(@__DIR__, "io.jl"))
-include(joinpath(@__DIR__, "ib.jl"))
+include(joinpath(@__DIR__, "lib.jl"))
 include(joinpath(@__DIR__, "multistage_lib.jl"))
 include(joinpath(@__DIR__, "NLLOCshell.jl"))
 include(joinpath(@__DIR__, "glibio.jl"))
@@ -49,10 +49,27 @@ glib_min_depth = glibsetting["receiver"][1]["d"][1]
 glib_max_depth = glibsetting["receiver"][1]["d"][3]
 
 event = TOML.parsefile(joinpath(eventpath, "event.toml"))
+if event["depth"] < glib_min_depth
+    event["depth"] = glib_min_depth
+end
+if event["depth"] > glib_max_depth
+    event["depth"] = glib_max_depth
+end
 
-algorithm = Dict("misfit" => [m.tags[1] for m in misfitmodules],
-        "searchdepth" => event["depth"],
-        "weight" => ones(length(misfitmodules)))
+algorithm = deepcopy(RTSv1_setting["focalmechanism"]["algorithm"])
+algorithm["searchdepth"] = event["depth"]
+if algorithm["step2_min_depth"] < glib_min_depth
+    algorithm["step2_min_depth"] = glib_min_depth
+end
+if algorithm["step2_max_depth"] > glib_max_depth
+    algorithm["step2_max_depth"] = glib_max_depth
+end
+if algorithm["step3_min_depth"] < glib_min_depth
+    algorithm["step3_min_depth"] = glib_min_depth
+end
+if algorithm["step3_max_depth"] > glib_max_depth
+    algorithm["step3_max_depth"] = glib_max_depth
+end
 
 # unpack waveform data
 sgyfile = joinpath(eventpath, "wave.sgy")

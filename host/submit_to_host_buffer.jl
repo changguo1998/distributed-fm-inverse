@@ -6,6 +6,7 @@
 include(joinpath(@__DIR__, "../lib.jl"))
 randstr(n::Integer) = join(rand(['A':'Z'; 'a':'z'; '0':'9'], n))
 get_single_process_lock(@__FILE__)
+get_lock(LOCK_HOST_STATUS_UPLOADING)
 const LOG_SETTING = (log=LOG_HOST_QUEUE, lock=LOCK_HOST_QUEUE_LOG)
 
 nodes = host_load_node()
@@ -18,8 +19,10 @@ for d in nodes.host.monitor_directory
         return isfile(joinpath(e, FLAG_HOST_PREPROCESS_END)) &&
            isfile(joinpath(e, "auto.jld2")) &&
            isdir(joinpath(e, "greenfun")) &&
+           isdir(joinpath(e, "sac")) &&
            (!isfile(joinpath(e, FLAG_HOST_QUEUE_BEGIN))) &&
-           (!isfile(joinpath(e, FLAG_HOST_INVERSION_FINISHED)))
+           (!isfile(joinpath(e, FLAG_HOST_INVERSION_FINISHED))) &&
+           (!isdir(joinpath(e, "result")))
     end
     if isempty(tmp_list)
         continue
@@ -28,6 +31,7 @@ for d in nodes.host.monitor_directory
 end
 
 if isempty(candidate_events)
+    release_lock(LOCK_HOST_STATUS_UPLOADING)
     release_single_process_lock(@__FILE__)
     exit(0)
 end
@@ -45,13 +49,14 @@ while true
     end
 end
 
-cmd = Cmd(`tar czf $(abspath(BUFFER_HOST_UPLOAD, tag*"_input.tar.gz")) auto.jld2 greenfun`; dir=edir)
+cmd = Cmd(`tar czf $(abspath(BUFFER_HOST_UPLOAD, tag*"_input.tar.gz")) auto.jld2 greenfun sac`; dir=edir)
 
 try
     run(cmd)
     log_info("enqueue ", tag, ", from ", edir)
 catch err
     log_err("failed to enqueue ", tag, ", from ", edir)
+    release_lock(LOCK_HOST_STATUS_UPLOADING)
     release_single_process_lock(@__FILE__)
     error(err)
 end
@@ -71,4 +76,5 @@ open(io->TOML.print(io, t), STATUS_QUEUE, "w")
 release_lock(LOCK_HOST_QUEUE_STATUS_FILE)
 
 touch(joinpath(edir, FLAG_HOST_QUEUE_END))
+release_lock(LOCK_HOST_STATUS_UPLOADING)
 release_single_process_lock(@__FILE__)
