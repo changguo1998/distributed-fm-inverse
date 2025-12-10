@@ -202,7 +202,7 @@ log_err(msg...) = log_msg("ERROR", msg...)
 
 
 function host_load_node()
-    t = TOML.parsefile(NODE_LIST_FILE)
+    t = TOML.parsefile(NODE_LIST_FILE())
     svrs = map(t["server"]) do s
         return InvServer(
             s["hostname"],
