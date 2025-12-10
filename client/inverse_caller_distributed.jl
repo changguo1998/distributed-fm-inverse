@@ -1,5 +1,5 @@
 using Pkg
-Pkg.activate(joinpath(@__DIR__, ".."))
+Pkg.activate(joinpath(@__DIR__, ".."); io=devnull)
 using TOML
 const FLAG_HOST_PREPROCESS_BEGIN = "dfmi_host_preprocess_begin.flag"
 const FLAG_HOST_PREPROCESS_END = "dfmi_host_preprocess_end.flag"

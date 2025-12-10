@@ -1,5 +1,5 @@
 using Pkg
-Pkg.activate(joinpath(@__DIR__, ".."))
+Pkg.activate(joinpath(@__DIR__, ".."); io=devnull)
 using TOML
 
 setting = TOML.parsefile(joinpath(@__DIR__, "../setting_v1.toml"))

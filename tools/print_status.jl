@@ -4,6 +4,7 @@ include(joinpath(@__DIR__, "../lib.jl"))
 using ArgumentProcessor
 ArgumentProcessor.THROW_ERROR_AFTER_HELP = true
 
+addflag!("all";         help="print all information")
 addflag!("queue";       abbr="q",  help="events submitted to queue")
 addflag!("config";      abbr="c",  help="server configuration")
 addflag!("loading";     abbr="l",  help="server loading status")
@@ -23,7 +24,7 @@ function main()
     nodes = host_load_node()
     server_list = map(s->s.hostname, nodes.servers)
     line_sep = 0
-    if input.config
+    if input.config || input.all
         if isempty(nodes.servers)
             print(repeat("\n", line_sep))
             @warn "Server list is empty"
@@ -39,18 +40,26 @@ function main()
                 info[i+1, 5] = s.system_root
             end
             print(repeat("\n", line_sep))
+            println("Setting:")
             print_table(info; aligncenter=[2, 3])
         end
         line_sep += 2 - line_sep
     end
 
-    if input.queue
+    if input.queue || input.all
         if isfile(STATUS_QUEUE)
             qinfo = TOML.parsefile(STATUS_QUEUE)
             id_list = setdiff(collect(keys(qinfo)), ["update_time"])
-            info = vcat(["Tag" "Path"], [(i, j)->isone(j) ? id_list[i] : qinfo[id_list[i]] for i = eachindex(id_list), j = 1:2])
-            print(repeat("\n", line_sep))
-            print_table(info)
+            filter!(t->isfile(joinpath(BUFFER_HOST_UPLOAD, t*"_input.tar.gz")), id_list)
+            if isempty(id_list)
+                print(repeat("\n", line_sep))
+                printstyled("Event queue is empty\n"; color=:light_green)
+            else
+                info = vcat(["Tag" "Path"], [isone(j) ? id_list[i] : qinfo[id_list[i]] for i = eachindex(id_list), j = 1:2])
+                print(repeat("\n", line_sep))
+                println("Queue:")
+                print_table(string.(info))
+            end
         else
             print(repeat("\n", line_sep))
             @warn "Queue status file not found."
@@ -58,7 +67,7 @@ function main()
         line_sep += 2 - line_sep
     end
 
-    if input.loading
+    if input.loading || input.all
         if isempty(server_list)
             print(repeat("\n", line_sep))
             @info "No available server."
@@ -79,75 +88,93 @@ function main()
                 end
             end
             print(repeat("\n", line_sep))
+            println("Loading Status:")
             print_table(info; aligncenter=[2, 3])
         end
         line_sep += 2 - line_sep
     end
 
-    if input.log_queue
+    if input.log_queue || input.all
         print(repeat("\n", line_sep))
         print_log(LOG_HOST_QUEUE, input.log_lines)
         line_sep += 2 - line_sep
     end
-    if input.log_up
+    if input.log_up || input.all
         print(repeat("\n", line_sep))
         print_log(LOG_HOST_UPLOAD, input.log_lines)
         line_sep += 2 - line_sep
     end
-    if input.log_down
+    if input.log_down || input.all
         print(repeat("\n", line_sep))
         print_log(LOG_HOST_DOWNLOAD, input.log_lines)
         line_sep += 2 - line_sep
     end
-    if isnothing(input.server) || isempty(input.server)
-        # print(repeat("\n", line_sep))
-        # @error "Invalid server name '$(input.server)'"
+
+    remote_info_list = String[]
+    @debug "remote_info_list: $(remote_info_list)"
+    if input.all
+        append!(remote_info_list, server_list)
+    end
+    @debug "remote_info_list: $(remote_info_list)"
+    if !isnothing(input.server) && !isempty(input.server)
+        push!(remote_info_list, input.server)
+    end
+    unique!(remote_info_list)
+
+    if isempty(remote_info_list)
         return nothing
     end
-    i = findfirst(==(input.server), server_list)
-    if isnothing(i)
-        @error "Hostname $(input.server) not found in server list"
-        return nothing
-    end
-    s = servers[i]
-    if !isnothing(input.log_unpack)
-        print(repeat("\n", line_sep))
-        print_remote_log(s, LOG_SERVER_UNPACK, input.log_lines)
-        line_sep += 2 - line_sep
-    end
-    if !isnothing(input.log_inverse)
-        print(repeat("\n", line_sep))
-        print_remote_log(s, LOG_SERVER_INVERSE, input.log_lines)
-        line_sep += 2 - line_sep
-    end
-    if !isnothing(input.log_result)
-        print(repeat("\n", line_sep))
-        print_remote_log(s, LOG_SERVER_RESULT, input.log_lines)
-        line_sep += 2 - line_sep
+
+    @debug "remote_info_list: $(remote_info_list)"
+
+    for svrhostname = remote_info_list
+        i = findfirst(==(svrhostname), server_list)
+        if isnothing(i)
+            @error "Hostname $(svrhostname) not found in server list"
+            continue
+        end
+        s = nodes.servers[i]
+        if input.log_unpack || input.all
+            print(repeat("\n", line_sep))
+            print_remote_log(s, LOG_SERVER_UNPACK, input.log_lines)
+            line_sep += 2 - line_sep
+        end
+        if input.log_inverse || input.all
+            print(repeat("\n", line_sep))
+            print_remote_log(s, LOG_SERVER_INVERSE, input.log_lines)
+            line_sep += 2 - line_sep
+        end
+        if input.log_result || input.all
+            print(repeat("\n", line_sep))
+            print_remote_log(s, LOG_SERVER_RESULT, input.log_lines)
+            line_sep += 2 - line_sep
+        end
     end
 end
 
-function print_log(logfile::String, nlines::Integer=5)
+function print_log(logfile::String, nlines::Integer=5, indent::Integer=4)
     if !isfile(logfile)
         @warn "File '$logfile' not found"
         return nothing
     end
     buffer = readlines(logfile)
     L = length(buffer)
+    indentstr = repeat(" ", indent)
+    println(logfile, ":")
     foreach(buffer[max(1, L-nlines+1):end]) do l
         if contains(l, "INFO")
-            printstyled(l, "\n"; color=:light_green)
+            printstyled(indentstr, l, "\n"; color=:light_green)
         elseif contains(l, "WARN")
-            printstyled(l, "\n"; color=:light_yellow)
+            printstyled(indentstr, l, "\n"; color=:light_yellow)
         elseif contains(l, "ERROR")
-            printstyled(l, "\n"; color=:light_red)
+            printstyled(indentstr, l, "\n"; color=:light_red)
         else
-            println(l)
+            println(indentstr, l)
         end
     end
 end
 
-function print_remote_log(s::InvServer, logfile::Function, nlines::Integer=5)
+function print_remote_log(s::InvServer, logfile::Function, nlines::Integer=5, indent::Integer=4)
     cmd = `ssh $(s.user)@$(s.ip) "cat $(logfile(s))"`
 
     texts = ""
@@ -158,16 +185,18 @@ function print_remote_log(s::InvServer, logfile::Function, nlines::Integer=5)
         return nothing
     end
     buffer = split(texts, '\n')
+    indentstr = repeat(" ", indent)
     L = length(buffer)
+    println(s.hostname, " ", logfile(s))
     foreach(buffer[max(1, L-nlines+1):end]) do l
         if contains(l, "INFO")
-            printstyled(l, "\n"; color=:light_green)
+            printstyled(indentstr, l, "\n"; color=:light_green)
         elseif contains(l, "WARN")
-            printstyled(l, "\n"; color=:light_yellow)
+            printstyled(indentstr, l, "\n"; color=:light_yellow)
         elseif contains(l, "ERROR")
-            printstyled(l, "\n"; color=:light_red)
+            printstyled(indentstr, l, "\n"; color=:light_red)
         else
-            println(l)
+            println(indentstr, l)
         end
     end
 end
@@ -176,6 +205,7 @@ function print_table(
     t::AbstractMatrix{<:AbstractString};
     delimiter::AbstractString=" ",
     head::Bool=false,
+    indent::Integer=4,
     align::Union{Symbol,Vector{Symbol}}=:left,
     alignleft::AbstractVector{<:Integer} = Int[],
     aligncenter::AbstractVector{<:Integer} = Int[],
@@ -208,13 +238,14 @@ function print_table(
         end
         return join([prefix, t[I], suffix])
     end
-    blines = map(l->join(l, delimiter), eachrow(buffer))
+    indentstr = repeat(" ", indent)
+    blines = map(l->indentstr*join(l, delimiter), eachrow(buffer))
     println(blines[1])
     if length(blines) == 1
         return nothing
     end
     if head
-        println(repeat("-", length(blines[1])))
+        println(indentstr, repeat("-", length(blines[1])))
     end
     foreach(println, blines[2:end])
     return nothing
@@ -223,8 +254,8 @@ end
 try
     get_single_process_lock(@__FILE__)
     main()
-catch
-
+catch err
+    # error(err)
 finally
     release_single_process_lock(@__FILE__)
 end

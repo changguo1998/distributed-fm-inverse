@@ -57,7 +57,7 @@ end
 '
 
 echo "Install packages"
-julia -t 32 --startup-file=no -e 'using Pkg; Pkg.activate("."); Pkg.instantiate(); Pkg.resolve(); Pkg.precompile()'
+julia -t 32 --startup-file=no -e 'using Pkg; Pkg.activate("."; io=devnull); Pkg.instantiate(); Pkg.resolve(); Pkg.precompile()'
 if [ -f "env.tar.gz" ]; then
     rm env.tar.gz
 fi

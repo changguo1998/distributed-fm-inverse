@@ -1,6 +1,6 @@
 # ENV["JULIA_DEPOT_PATH"] = abspath(@__DIR__, "julia/")
 using Pkg
-Pkg.activate(@__DIR__)
+Pkg.activate(@__DIR__; io=devnull)
 
 using TOML, Dates, SHA
 

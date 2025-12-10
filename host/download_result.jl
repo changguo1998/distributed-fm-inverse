@@ -34,6 +34,7 @@ function main()
                 run(cmd_rm)
             catch err
                 log_err("error while downloading from $(svr.hostname)")
+                log_err(err)
             end
         end
     end
