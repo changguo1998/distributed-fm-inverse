@@ -73,7 +73,7 @@ function main()
         end
     end
 
-    # get_lock(LOCK_HOST_QUEUE_STATUS_FILE)
+    # get_lock(LOCK_HOST_QUEUE_STATUS_FILE, IF_LOCK_FAILED_WAIT)
     # q = TOML.parsefile(STATUS_QUEUE)
     # t = Dict()
     # for k in keys(q)

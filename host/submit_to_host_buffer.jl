@@ -66,7 +66,7 @@ function main()
     t[tag] = edir
     t["update_time"] = now()
 
-    get_lock(LOCK_HOST_QUEUE_STATUS_FILE)
+    get_lock(LOCK_HOST_QUEUE_STATUS_FILE, IF_LOCK_FAILED_WAIT)
     open(io->TOML.print(io, t), STATUS_QUEUE, "w")
     release_lock(LOCK_HOST_QUEUE_STATUS_FILE)
 
@@ -75,13 +75,11 @@ end
 
 try
     get_single_process_lock(@__FILE__)
-    # get_lock(LOCK_HOST_STATUS_UPLOADING)
     main()
 catch err
     log_err("failed to run script")
     log_err(string(err))
     error(err)
 finally
-    # release_lock(LOCK_HOST_STATUS_UPLOADING)
     release_single_process_lock(@__FILE__)
 end

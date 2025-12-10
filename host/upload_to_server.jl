@@ -133,13 +133,11 @@ end
 
 try
     get_single_process_lock(@__FILE__)
-    # get_lock(LOCK_HOST_STATUS_UPLOADING)
     main()
 catch err
     log_err("failed to run script")
     log_err(string(err))
     error(err)
 finally
-    # release_lock(LOCK_HOST_STATUS_UPLOADING)
     release_single_process_lock(@__FILE__)
 end

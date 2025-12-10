@@ -8,6 +8,11 @@ const PRJ_ROOT_PATH = abspath(@__DIR__)
 const DRY_RUN = false
 const DEBUG = false
 
+const IF_LOCK_FAILED_EXIT = 1
+const IF_LOCK_FAILED_WAIT = 2
+const IF_LOCK_FAILED_ERROR = 3
+const IF_LOCK_FAILED_FALSE = 4
+
 struct InvServer <: Any
     hostname::String
     ip::String
@@ -121,17 +126,22 @@ function hashstr(s::String)
     return uppercase(join(bytes2hex.(h[1:8])))
 end
 
-function get_lock(f::String)
-    n = 1
-    for _ = 1:5
-        if !isfile(f)
-            touch(f)
-            return nothing
+function get_lock(f::String, type::Integer)
+    if isfile(f)
+        if type == IF_LOCK_FAILED_ERROR
+            error("can't lock file $f")
+        elseif type == IF_LOCK_FAILED_EXIT
+            exit(0)
+        elseif type == IF_LOCK_FAILED_WAIT
+            while isfile(f)
+                sleep(0.1)
+            end
+        elseif type == IF_LOCK_FAILED_FALSE
+            return false
         end
-        sleep(0.1 * n)
-        n = rand(1:5)
     end
-    exit(0)
+    touch(f)
+    return true
 end
 
 function release_lock(f::String)
@@ -148,11 +158,7 @@ function get_single_process_lock(f::String)
         p2
     end
     lockfile = joinpath(PRJ_ROOT_PATH, "var", hashstr(f)*"_"*fn*".lock")
-    if isfile(lockfile)
-        exit(0)
-    end
-    touch(lockfile)
-    return nothing
+    return get_lock(lockfile, IF_LOCK_FAILED_EXIT)
 end
 
 function release_single_process_lock(f::String)
@@ -162,9 +168,7 @@ function release_single_process_lock(f::String)
         p2
     end
     lockfile = joinpath(PRJ_ROOT_PATH, "var", hashstr(f)*"_"*fn*".lock")
-    if isfile(lockfile)
-        rm(lockfile; force=true)
-    end
+    release_lock(lockfile)
 end
 
 function log_msg(prefix::String, msg...)
@@ -176,7 +180,7 @@ function log_msg(prefix::String, msg...)
     end
     lines = split(b, '\n')
 
-    get_lock(LOG_SETTING.lock)
+    get_lock(LOG_SETTING.lock, IF_LOCK_FAILED_WAIT)
     t = now()
     tstr = Dates.format(t, "yyyy-mm-dd HH:MM:SS.sss")
     headline = "[$tstr|$prefix] "
