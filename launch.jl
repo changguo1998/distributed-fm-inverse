@@ -1,6 +1,18 @@
 #!/usr/bin/env julia
 include(joinpath(@__DIR__, "lib.jl"))
 
+function test_loading_time()
+    @info "Test loading time"
+    t1 = now()
+    t2 = t1
+    try
+        run(Cmd(`bash dfmi.sh loading_time_test.jl`; dir=@__DIR__), devnull, devnull, devnull)
+    finally
+        t2 = now()
+    end
+    return max(ceil(t2 - t1, Millisecond), Millisecond(1000))
+end
+
 # reset
 cmd = Cmd(`bash dfmi.sh reset.jl`; dir=@__DIR__)
 if DEBUG
@@ -13,18 +25,15 @@ run(`bash dfmi.sh server/update_server_status.jl`, devnull, devnull, devnull)
 svr_setting = TOML.parsefile(SERVER_SETTING_FILE())
 nodes = host_load_node()
 loading_time = let
-    t1 = now()
-    t2 = t1
-    try
-        run(Cmd(`bash dfmi.sh loading_time_test.jl`; dir=@__DIR__))
-    finally
-        t2 = now()
-    end
-    abs(t2 - t1) < Second(1) ? Second(1) : ceil(t2 - t1, Second)
+    n = 5
+    Millisecond(round(Int,
+        sum(map(i->test_loading_time(), 1:n)).value/n
+    ))
 end
 
 planed_script = Tuple{String,Second}[]
-interval = max(loading_time, Second(5))
+interval = max(ceil(loading_time, Second), Second(5))
+@info "run time interval: $interval"
 if svr_setting["hostname"] == nodes.host.hostname
     append!(planed_script, [
         ("host/submit_to_host_buffer.jl", interval),
@@ -70,6 +79,7 @@ while true
     end
     script_is_called = false
     for i = eachindex(planed_script)
+        t = now()
         if t - lastrun[i] >= planed_script[i][2]
             if DEBUG
                 @info "[$t] run script: $(planed_script[i][1])"
@@ -79,7 +89,7 @@ while true
             lastrun[i] = t
             script_is_called = true
         end
-        sleep(loading_time)
+        sleep(1)
     end
     if !script_is_called
         sleep(loading_time)

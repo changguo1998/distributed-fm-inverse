@@ -21,9 +21,12 @@ function main()
 
     open(io->TOML.print(io, info), STATUS_SERVER(), "w")
 end
-get_single_process_lock(@__FILE__)
+
 try
+    get_single_process_lock(@__FILE__)
     main()
-catch
+catch err
+    @error err
+finally
+    release_single_process_lock(@__FILE__)
 end
-release_single_process_lock(@__FILE__)

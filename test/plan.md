@@ -2,8 +2,8 @@
 
 ## Tools
 
-- [x] maintainer/deploy.jl
-- [x] maintainer/update_server_setting.jl
+- [x] tools/deploy.jl
+- [x] tools/update_server_setting.jl
 - [x] install.jl
 
 ## Host-Host Modules

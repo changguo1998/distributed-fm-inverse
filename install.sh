@@ -3,4 +3,6 @@
 if [ ! -d "julia" ]; then
     tar xaf env.tar.gz
 fi
+
+bash dfmi.sh loading_time_test.jl
 bash dfmi.sh reset.jl

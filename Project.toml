@@ -20,5 +20,5 @@ ArgumentProcessor = {rev = "main", url = "https://gitee.com/changguo1998/Argumen
 DWN = {rev = "master", url = "https://gitee.com/changguo1998/DWN.jl"}
 JuliaSourceMechanism = {rev = "master", url = "https://gitee.com/changguo1998/JuliaSourceMechanism.jl"}
 LengthAreaVolume = {rev = "master", url = "https://gitee.com/changguo1998/LengthAreaVolume.jl"}
-SeisTools = {rev = "master", url = "https://gitee.com/changguo1998/SeisTools.jl"}
+SeisTools = {rev = "develop", url = "https://gitee.com/changguo1998/SeisTools.jl"}
 SeismicRayTrace = {rev = "main", url = "https://gitee.com/changguo1998/SeismicRayTrace.jl"}

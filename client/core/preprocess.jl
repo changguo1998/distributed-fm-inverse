@@ -49,11 +49,8 @@ glib_min_depth = glibsetting["receiver"][1]["d"][1]
 glib_max_depth = glibsetting["receiver"][1]["d"][3]
 
 event = TOML.parsefile(joinpath(eventpath, "event.toml"))
-if event["depth"] < glib_min_depth
-    event["depth"] = glib_min_depth
-end
-if event["depth"] > glib_max_depth
-    event["depth"] = glib_max_depth
+if event["depth"] < glib_min_depth || event["depth"] > glib_max_depth
+    event["depth"] = (glib_min_depth + glib_max_depth) / 2.0
 end
 
 algorithm = deepcopy(RTSv1_setting["focalmechanism"]["algorithm"])
@@ -120,10 +117,27 @@ for tr in sgydata
     end
 end
 
-stations = buildstationconfiguration(dataroot, event)
+# stations = buildstationconfiguration(dataroot, event)
 
-filter!(stations) do s
+# filter!(stations) do s
+#     return (s["base_distance"] > glib_min_dist) && (s["base_distance"] < glib_max_dist)
+# end
+
+tstations = buildstationconfiguration(dataroot, event)
+filter!(tstations) do s
     return (s["base_distance"] > glib_min_dist) && (s["base_distance"] < glib_max_dist)
+end
+stationtag(s) = s["network"]*"."*s["station"]
+stations = let
+    station_list = unique(sort(map(stationtag, tstations)))
+    w = randn(length(station_list))
+    r = sortperm(w)
+    if length(station_list) > 6
+        station_selected = station_list[r[1:6]]
+    else
+        station_selected = station_list
+    end
+    filter(s->stationtag(s) in station_selected, tstations)
 end
 
 TIME_DEFAULT = DateTime(2000)
