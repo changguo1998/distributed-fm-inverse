@@ -5,6 +5,7 @@ nodes = host_load_node()
 
 for s in nodes.servers
     try
+        run(Cmd(["scp", NODE_LIST_FILE(), "$(s.user)*@$(s.ip):$(NODE_LIST_FILE(s))"]))
         run(Cmd([
             "ssh",
             s.user*"@"*s.ip,

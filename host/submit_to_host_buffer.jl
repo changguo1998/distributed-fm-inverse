@@ -79,7 +79,6 @@ try
 catch err
     log_err("failed to run script")
     log_err(string(err))
-    error(err)
 finally
     release_single_process_lock(@__FILE__)
 end

@@ -117,7 +117,8 @@ const LOCK_SERVER_RESULT_LOG = abspath(PRJ_ROOT_PATH, "var/server_result_log.loc
 
 const LOCK_HOST_STATUS_UPLOADING = abspath(PRJ_ROOT_PATH, "var/host_uploading.lock")
 
-const NODE_LIST_FILE = abspath(PRJ_ROOT_PATH, "config/node-list.toml")
+NODE_LIST_FILE(svr::InvServer) = abspath(svr.system_root, "config/node-list.toml")
+NODE_LIST_FILE() = abspath(PRJ_ROOT_PATH, "config/node-list.toml")
 SERVER_SETTING_FILE(svr::InvServer) = abspath(svr.system_root, "config/svr.toml")
 SERVER_SETTING_FILE() = abspath(PRJ_ROOT_PATH, "config/svr.toml")
 

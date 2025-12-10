@@ -25,4 +25,4 @@
 - [x] server/pack_result.jl
 - [x] server/update_server_status.jl
 - [x] host/download_result.jl
-- [ ] server/cleanup_downloaded_result.jl
+- [x] server/cleanup_downloaded_result.jl
