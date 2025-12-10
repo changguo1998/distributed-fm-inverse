@@ -46,17 +46,21 @@ threads_per_event = 32
 priority = 2
 
 [[server]]
-hostname = "Room309"
+hostname = "Room312"
 ip = "localhost"
 user = "guochang"
-system_root = "/home/guochang/Projects/distributed-fm-inverse"
+system_root = "/data/guochang/distributed-fm-inverse"
 max_event_number = 1
-threads_per_event = 32
-priority = 2
+threads_per_event = 16
+priority = 0
 
 [host]
-hostname = "Room309"
+hostname = "Room312"
 monitor_directory = [
-    "/home/guochang/Projects/distributed-fm-inverse/test/monitored_dir",
-    "/data/real_time_system_data/db_v1/fm"
+    "/data/guochang/bai-he-tan/real-time-system-v1-db/fm",
+    "/data/guochang/chang-ning/real-time-system-v1-db/fm",
+    "/data/guochang/feidong/real-time-system-v1-db/fm",
+    "/data/guochang/lu-xian/real-time-system-v1-db/fm",
+    "/data/guochang/mian-ning/real-time-system-v1-db/fm",
+    "/data/guochang/xiang-ge-li-la/real-time-system-v1-db/fm"
 ]

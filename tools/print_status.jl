@@ -24,6 +24,7 @@ function main()
     nodes = host_load_node()
     server_list = map(s->s.hostname, nodes.servers)
     line_sep = 0
+    skip_n_line = 1
     if input.config || input.all
         if isempty(nodes.servers)
             print(repeat("\n", line_sep))
@@ -43,7 +44,7 @@ function main()
             println("Setting:")
             print_table(info; aligncenter=[2, 3])
         end
-        line_sep += 2 - line_sep
+        line_sep += skip_n_line - line_sep
     end
 
     if input.queue || input.all
@@ -64,7 +65,7 @@ function main()
             print(repeat("\n", line_sep))
             @warn "Queue status file not found."
         end
-        line_sep += 2 - line_sep
+        line_sep += skip_n_line - line_sep
     end
 
     if input.loading || input.all
@@ -91,23 +92,23 @@ function main()
             println("Loading Status:")
             print_table(info; aligncenter=[2, 3])
         end
-        line_sep += 2 - line_sep
+        line_sep += skip_n_line - line_sep
     end
 
     if input.log_queue || input.all
         print(repeat("\n", line_sep))
         print_log(LOG_HOST_QUEUE, input.log_lines)
-        line_sep += 2 - line_sep
+        line_sep += skip_n_line - line_sep
     end
     if input.log_up || input.all
         print(repeat("\n", line_sep))
         print_log(LOG_HOST_UPLOAD, input.log_lines)
-        line_sep += 2 - line_sep
+        line_sep += skip_n_line - line_sep
     end
     if input.log_down || input.all
         print(repeat("\n", line_sep))
         print_log(LOG_HOST_DOWNLOAD, input.log_lines)
-        line_sep += 2 - line_sep
+        line_sep += skip_n_line - line_sep
     end
 
     remote_info_list = String[]
@@ -137,17 +138,17 @@ function main()
         if input.log_unpack || input.all
             print(repeat("\n", line_sep))
             print_remote_log(s, LOG_SERVER_UNPACK, input.log_lines)
-            line_sep += 2 - line_sep
+            line_sep += skip_n_line - line_sep
         end
         if input.log_inverse || input.all
             print(repeat("\n", line_sep))
             print_remote_log(s, LOG_SERVER_INVERSE, input.log_lines)
-            line_sep += 2 - line_sep
+            line_sep += skip_n_line - line_sep
         end
         if input.log_result || input.all
             print(repeat("\n", line_sep))
             print_remote_log(s, LOG_SERVER_RESULT, input.log_lines)
-            line_sep += 2 - line_sep
+            line_sep += skip_n_line - line_sep
         end
     end
 end
@@ -255,7 +256,7 @@ try
     get_single_process_lock(@__FILE__)
     main()
 catch err
-    # error(err)
+    error(err)
 finally
     release_single_process_lock(@__FILE__)
 end

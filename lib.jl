@@ -6,7 +6,7 @@ using TOML, Dates, SHA
 
 const PRJ_ROOT_PATH = abspath(@__DIR__)
 const DRY_RUN = false
-const DEBUG = true
+const DEBUG = false
 
 struct InvServer <: Any
     hostname::String
@@ -40,26 +40,14 @@ end
 
 struct InvHost <: Any
     hostname::String
-    ip::String
-    user::String
-    system_root::String
     monitor_directory::Vector{String}
 end
 
 function InvHost(
     hostname::AbstractString,
-    ip::AbstractString,
-    user::AbstractString,
-    system_root::AbstractString,
     monitor_directory::AbstractVector{<:AbstractString})
 
-    return InvHost(
-        String(hostname),
-        String(ip),
-        String(user),
-        String(system_root),
-        map(String, monitor_directory)
-    )
+    return InvHost(String(hostname), map(String, monitor_directory))
 end
 
 # buffer dir
@@ -124,7 +112,7 @@ const LOCK_SERVER_RESULT_LOG = abspath(PRJ_ROOT_PATH, "var/server_result_log.loc
 
 const LOCK_HOST_STATUS_UPLOADING = abspath(PRJ_ROOT_PATH, "var/host_uploading.lock")
 
-const NODE_LIST_FILE = abspath(PRJ_ROOT_PATH, "config/node-list-test-host-server.toml")
+const NODE_LIST_FILE = abspath(PRJ_ROOT_PATH, "config/node-list.toml")
 SERVER_SETTING_FILE(svr::InvServer) = abspath(svr.system_root, "config/svr.toml")
 SERVER_SETTING_FILE() = abspath(PRJ_ROOT_PATH, "config/svr.toml")
 
@@ -223,9 +211,6 @@ function host_load_node()
     end
     h = InvHost(
         t["host"]["hostname"],
-        t["host"]["ip"],
-        t["host"]["user"],
-        t["host"]["system_root"],
         t["host"]["monitor_directory"]
     )
     return (host=h, servers=svrs)
