@@ -2,24 +2,25 @@
 include(joinpath(@__DIR__, "../lib.jl"))
 
 using ArgumentProcessor
-ArgumentProcessor.THROW_ERROR_AFTER_HELP = true
-
-addflag!("all";         help="print all information")
-addflag!("queue";       abbr="q",  help="events submitted to queue")
-addflag!("config";      abbr="c",  help="server configuration")
-addflag!("loading";     abbr="l",  help="server loading status")
-addflag!("log_queue";   abbr="Lq", outername="log-queue",    help="log file of submit_to_host_buffer.jl")
-addflag!("log_up";      abbr="Lu", outername="log-upload",   help="log file of upload_to_server.jl")
-addflag!("log_down";    abbr="Ld", outername="log-download", help="log file of download_result.jl")
-addflag!("log_unpack";  abbr="Lp", outername="log-unpack",   help="log file of unpack_input_file.jl")
-addflag!("log_inverse"; abbr="Li", outername="log-inverse",  help="log file of call_inverse.jl")
-addflag!("log_result";  abbr="Lr", outername="log-result",   help="log file of pack_result.jl")
-
-addopt!("server";    abbr="s", fmt=" %s", default=" ", help="specify server host name while printing remote log files")
-addopt!("log_lines"; abbr="n", outername="log-lines", fmt=" %d", default=" 5", help="print last number of lines while printing log file")
-
 
 function main()
+
+    ArgumentProcessor.THROW_ERROR_AFTER_HELP = true
+
+    addflag!("all";         help="print all information")
+    addflag!("queue";       abbr="q",  help="events submitted to queue")
+    addflag!("config";      abbr="c",  help="server configuration")
+    addflag!("loading";     abbr="l",  help="server loading status")
+    addflag!("log_queue";   abbr="Lq", outername="log-queue",    help="log file of submit_to_host_buffer.jl")
+    addflag!("log_up";      abbr="Lu", outername="log-upload",   help="log file of upload_to_server.jl")
+    addflag!("log_down";    abbr="Ld", outername="log-download", help="log file of download_result.jl")
+    addflag!("log_unpack";  abbr="Lp", outername="log-unpack",   help="log file of unpack_input_file.jl")
+    addflag!("log_inverse"; abbr="Li", outername="log-inverse",  help="log file of call_inverse.jl")
+    addflag!("log_result";  abbr="Lr", outername="log-result",   help="log file of pack_result.jl")
+
+    addopt!("server";    abbr="s", fmt=" %s", default=" ", help="specify server host name while printing remote log files")
+    addopt!("log_lines"; abbr="n", outername="log-lines", fmt=" %d", default=" 5", help="print last number of lines while printing log file")
+
     input = ArgumentProcessor.parse(ARGS)
     nodes = host_load_node()
     server_list = map(s->s.hostname, nodes.servers)
@@ -255,8 +256,7 @@ end
 try
     get_single_process_lock(@__FILE__)
     main()
-catch err
-    error(err)
+catch
 finally
     release_single_process_lock(@__FILE__)
 end
