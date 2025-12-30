@@ -41,7 +41,9 @@ function main()
         return nothing
     end
 
-    tag = first(buffered_event)
+    # tag = first(buffered_event)
+    gentime = map(f->stat(joinpath(BUFFER_HOST_UPLOAD, f*"_input.tar.gz")).mtime, buffered_event)
+    tag = buffered_event[argmax(gentime)]
 
     if DEBUG
         @info "Uploading $tag"

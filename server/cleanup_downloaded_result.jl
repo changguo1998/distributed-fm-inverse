@@ -28,9 +28,9 @@ function main()
             push!(waitinglist, fn)
         end
         if isempty(waitinglist)
-            foreach(_rm, waitinglist)
-        else
             _rm(joinpath(BUFFER_SERVER_CLEAN(), f))
+        else
+            foreach(_rm, waitinglist)
         end
     end
 end
