@@ -7,7 +7,7 @@ user = "guochang"
 system_root = "/data2/guochang/distributed-fm-inverse"
 max_event_number = 4
 threads_per_event = 32
-priority = 1
+priority = 2
 
 [[server]]
 hostname = "PowerEdge2"
@@ -16,7 +16,7 @@ user = "guochang"
 system_root = "/data2/guochang/distributed-fm-inverse"
 max_event_number = 4
 threads_per_event = 32
-priority = 1
+priority = 2
 
 [[server]]
 hostname = "PowerEdge3"
@@ -25,7 +25,7 @@ user = "guochang"
 system_root = "/data2/guochang/distributed-fm-inverse"
 max_event_number = 4
 threads_per_event = 32
-priority = 2
+priority = 1
 
 [[server]]
 hostname = "PowerEdge4"
@@ -52,7 +52,7 @@ user = "guochang"
 system_root = "/data/guochang/distributed-fm-inverse"
 max_event_number = 1
 threads_per_event = 16
-priority = 0
+priority = -1
 
 [host]
 hostname = "Room312"
