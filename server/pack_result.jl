@@ -24,11 +24,11 @@ function main()
 
     touch(joinpath(edir, FLAG_SERVER_PACK_RESULT_BEGIN))
 
-    if !isdir(joinpath(edir, "result"))
-        touch(joinpath(edir, FLAG_SERVER_INVERSE_FAILED))
-    end
-
-    if isempty(readdir(joinpath(edir, "result")))
+    if isdir(joinpath(edir, "result"))
+        if isempty(readdir(joinpath(edir, "result")))
+            touch(joinpath(edir, FLAG_SERVER_INVERSE_FAILED))
+        end
+    else
         touch(joinpath(edir, FLAG_SERVER_INVERSE_FAILED))
     end
 
